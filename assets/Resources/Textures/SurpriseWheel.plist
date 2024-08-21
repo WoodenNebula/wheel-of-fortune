@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>frames</key>
+    <dict>
+      <key>2 1 (1).png</key>
+      <dict>
+        <key>frame</key>
+        <string>{{0,0},{1280,720}}</string>
+        <key>offset</key>
+        <string>{0,0}</string>
+        <key>rotated</key>
+        <false/>
+        <key>sourceColorRect</key>
+        <string>{{0,0},{1280,720}}</string>
+        <key>sourceSize</key>
+        <string>{1280,720}</string>
+      </dict>
+      <key>BG4 1.png</key>
+      <dict>
+        <key>frame</key>
+        <string>{{1280,0},{1280,720}}</string>
+        <key>offset</key>
+        <string>{0,0}</string>
+        <key>rotated</key>
+        <true/>
+        <key>sourceColorRect</key>
+        <string>{{0,0},{1280,720}}</string>
+        <key>sourceSize</key>
+        <string>{1280,720}</string>
+      </dict>
+      <key>SurpriseWheel-02 1.png</key>
+      <dict>
+        <key>frame</key>
+        <string>{{0,720},{939,163}}</string>
+        <key>offset</key>
+        <string>{-2.5,-9.5}</string>
+        <key>rotated</key>
+        <false/>
+        <key>sourceColorRect</key>
+        <string>{{11,94},{939,163}}</string>
+        <key>sourceSize</key>
+        <string>{966,332}</string>
+      </dict>
+      <key>GrandJackpot-03 1.png</key>
+      <dict>
+        <key>frame</key>
+        <string>{{939,720},{786,148}}</string>
+        <key>offset</key>
+        <string>{8.5,-6.5}</string>
+        <key>rotated</key>
+        <true/>
+        <key>sourceColorRect</key>
+        <string>{{97,69},{786,148}}</string>
+        <key>sourceSize</key>
+        <string>{963,273}</string>
+      </dict>
+      <key>Group 17 (2).png</key>
+      <dict>
+        <key>frame</key>
+        <string>{{1087,720},{365,82}}</string>
+        <key>offset</key>
+        <string>{0,0}</string>
+        <key>rotated</key>
+        <true/>
+        <key>sourceColorRect</key>
+        <string>{{10,36},{365,82}}</string>
+        <key>sourceSize</key>
+        <string>{385,154}</string>
+      </dict>
+    </dict>
+    <key>metadata</key>
+    <dict>
+      <key>format</key>
+      <integer>2</integer>
+      <key>pixelFormat</key>
+      <string>RGBA8888</string>
+      <key>premultiplyAlpha</key>
+      <false/>
+      <key>realTextureFileName</key>
+      <string>SurpriseWheel.png</string>
+      <key>size</key>
+      <string>{2000,1506}</string>
+      <key>textureFileName</key>
+      <string>SurpriseWheel</string>
+    </dict>
+  </dict>
+</plist>
