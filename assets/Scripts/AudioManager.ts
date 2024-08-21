@@ -1,5 +1,10 @@
 const { ccclass, property } = cc._decorator;
 
+const LOCAL_STORAGE_KEYS = {
+    IS_AUDIO_ENABLED: "isAudioEnabled",
+    IS_MUSIC_ENABLED: "isBgMusicEnabled"
+}
+
 @ccclass
 export default class AudioManager extends cc.Component {
     private static instance: AudioManager = null;
@@ -84,8 +89,17 @@ export default class AudioManager extends cc.Component {
 
         // load prev saved data
         cc.log("Loading data");
-        AudioManager.isAudioEnabled = (cc.sys.localStorage.getItem('isAudioEnabled') == "true");
-        AudioManager.isBgMusicEnabled = (cc.sys.localStorage.getItem('isBgMusicEnabled') == "true");
+        let audioEnabled = cc.sys.localStorage.getItem(LOCAL_STORAGE_KEYS.IS_AUDIO_ENABLED);
+        if (audioEnabled == "true" || audioEnabled == "null")
+            AudioManager.isAudioEnabled = true;
+        else
+            AudioManager.isAudioEnabled = false;
+
+        let musicEnabled = cc.sys.localStorage.getItem(LOCAL_STORAGE_KEYS.IS_MUSIC_ENABLED);
+        if (musicEnabled == "true" || musicEnabled == "null")
+            AudioManager.isBgMusicEnabled = true;
+        else
+            AudioManager.isBgMusicEnabled = false;
 
 
         this.musicSource = this.musicNode.getComponent(cc.AudioSource);
@@ -97,8 +111,8 @@ export default class AudioManager extends cc.Component {
     saveState(): void {
         cc.log(`Saving (audio, music) = (${AudioManager.isAudioEnabled}, ${AudioManager.isBgMusicEnabled})`);
 
-        cc.sys.localStorage.setItem('isAudioEnabled', AudioManager.isAudioEnabled);
-        cc.sys.localStorage.setItem('isBgMusicEnabled', AudioManager.isBgMusicEnabled);
+        cc.sys.localStorage.setItem(LOCAL_STORAGE_KEYS.IS_AUDIO_ENABLED, AudioManager.isAudioEnabled.toString());
+        cc.sys.localStorage.setItem(LOCAL_STORAGE_KEYS.IS_MUSIC_ENABLED, AudioManager.isBgMusicEnabled.toString());
     }
 
     protected onDestroy(): void {
