@@ -40,31 +40,31 @@ export default class AudioManager extends cc.Component {
         AudioManager.isBgMusicEnabled = !AudioManager.isBgMusicEnabled;
         AudioManager.Instance.saveState();
 
-        AudioManager.Instance.playBgMusic(AudioManager.isBgMusicEnabled);
+        AudioManager.playBgMusic(AudioManager.isBgMusicEnabled);
         cc.log("Music toggled!");
     }
 
 
-    playButtonClickAudio(shouldPlay: boolean): void {
+    public static playButtonClickAudio(shouldPlay: boolean): void {
         cc.log("Audio enabled: " + AudioManager.isAudioEnabled);
 
         if (AudioManager.isAudioEnabled && shouldPlay) {
             cc.log("playing Button click!");
-            this.buttonAudioSource.play();
+            AudioManager.Instance.buttonAudioSource.play();
         }
     }
 
 
-    playBgMusic(shouldPlay: boolean): void {
-        if (AudioManager.isBgMusicEnabled && !this.hasPlayedOnce) {
-            this.musicSource.play();
-            this.hasPlayedOnce = true;
+    public static playBgMusic(shouldPlay: boolean): void {
+        if (AudioManager.isBgMusicEnabled && !AudioManager.Instance.hasPlayedOnce) {
+            AudioManager.Instance.musicSource.play();
+            AudioManager.Instance.hasPlayedOnce = true;
         }
         else if (AudioManager.isBgMusicEnabled && shouldPlay) {
-            this.musicSource.resume();
+            AudioManager.Instance.musicSource.resume();
         }
         else {
-            this.musicSource.pause();
+            AudioManager.Instance.musicSource.pause();
         }
     }
 

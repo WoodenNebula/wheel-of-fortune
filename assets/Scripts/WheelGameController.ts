@@ -16,7 +16,7 @@ export default class WheelGameController extends cc.Component {
     exitButtonNode: cc.Node = null;
 
     onExitButtonClicked(): void {
-        AudioManager.Instance.playButtonClickAudio(true);
+        AudioManager.playButtonClickAudio(true);
         SceneManager.Instance.onGameExit();
     }
 }

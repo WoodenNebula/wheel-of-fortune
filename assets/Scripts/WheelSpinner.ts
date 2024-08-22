@@ -50,14 +50,14 @@ export default class WheelSpiner extends WheelBase {
     onSpinButtonClick() {
         cc.log("Button Clicked!");
         if (this.spinState == SpinStates.NoSpin) {
-            AudioManager.Instance.playButtonClickAudio(true);
+            AudioManager.playButtonClickAudio(true);
 
             this.spinButtonNode.active = false;
             this.switchState(SpinStates.Accelerating);
             this.spinComplete = false;
         }
         else if (this.spinState == SpinStates.CostantSpeed) {
-            AudioManager.Instance.playButtonClickAudio(true);
+            AudioManager.playButtonClickAudio(true);
             this.spinButtonNode.active = false;
             this.switchState(SpinStates.Decelerating);
         }

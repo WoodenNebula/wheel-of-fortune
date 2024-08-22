@@ -19,6 +19,42 @@ export default class MainMenuController extends cc.Component {
     bgMusicToggle: cc.Toggle = null;
 
 
+
+    onSingleWheelButtonClicked(): void {
+        AudioManager.playButtonClickAudio(true);
+        SceneManager.Instance.onSingleWheelLaunch();
+    }
+
+    onDoubleWheelButtonClick(): void {
+        AudioManager.playButtonClickAudio(true);
+        SceneManager.Instance.onDoubleWheelLaunch();
+    }
+
+
+    onExitButtonClicked(): void {
+        AudioManager.playButtonClickAudio(true);
+        cc.log("Exiting Game!");
+        AudioManager.Instance.saveState();
+        cc.game.end();
+    }
+
+    onAudioToggleButtonClicked(): void {
+        cc.log("ShouldPlay? " + AudioManager.isAudioEnabled);
+        AudioManager.toggleAudio();
+        AudioManager.playButtonClickAudio(AudioManager.isAudioEnabled);
+
+        this.toggleAudioDisplay();
+    }
+
+
+    onBgMusicToggleButtonClicked(): void {
+        AudioManager.toggleMusic();
+        AudioManager.playButtonClickAudio(true);
+
+        this.toggleBgMusicDisplay();
+    }
+
+
     toggleAudioDisplay(): void {
         if (AudioManager.isAudioEnabled)
             this.audioToggle.uncheck();
@@ -32,42 +68,6 @@ export default class MainMenuController extends cc.Component {
             this.bgMusicToggle.uncheck();
         else
             this.bgMusicToggle.check();
-    }
-
-
-    onAudioToggleButtonClicked(): void {
-        cc.log("ShouldPlay? " + AudioManager.isAudioEnabled);
-        AudioManager.toggleAudio();
-        AudioManager.Instance.playButtonClickAudio(AudioManager.isAudioEnabled);
-
-        this.toggleAudioDisplay();
-    }
-
-
-    onBgMusicToggleButtonClicked(): void {
-        AudioManager.toggleMusic();
-        AudioManager.Instance.playButtonClickAudio(true);
-
-        this.toggleBgMusicDisplay();
-    }
-
-
-    onSingleWheelButtonClicked(): void {
-        AudioManager.Instance.playButtonClickAudio(true);
-        SceneManager.Instance.onSingleWheelLaunch();
-    }
-
-    onDoubleWheelButtonClick(): void {
-        AudioManager.Instance.playButtonClickAudio(true);
-        SceneManager.Instance.onDoubleWheelLaunch();
-    }
-
-
-    onExitButtonClicked(): void {
-        AudioManager.Instance.playButtonClickAudio(true);
-        cc.log("Exiting Game!");
-        AudioManager.Instance.saveState();
-        cc.game.end();
     }
 
 

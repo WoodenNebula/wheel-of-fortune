@@ -3,7 +3,7 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class WheelBase extends cc.Component {
     @property(cc.Node)
-    spinButtonNode: cc.Node = null;
+    spinButtonNode: cc.Node = null
 
     @property(cc.Node)
     buttonPressedNode: cc.Node = null;
