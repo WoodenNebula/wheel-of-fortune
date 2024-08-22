@@ -52,9 +52,14 @@ export default class MainMenuController extends cc.Component {
     }
 
 
-    onStartButtonClicked(): void {
+    onSingleWheelButtonClicked(): void {
         AudioManager.Instance.playButtonClickAudio(true);
-        SceneManager.Instance.onGameStart();
+        SceneManager.Instance.onSingleWheelLaunch();
+    }
+
+    onDoubleWheelButtonClick(): void {
+        AudioManager.Instance.playButtonClickAudio(true);
+        SceneManager.Instance.onDoubleWheelLaunch();
     }
 
 

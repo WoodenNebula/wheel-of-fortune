@@ -1,15 +1,16 @@
+import { DEFAULT_GAME_PROPERTIES } from "./GameConfig";
 import ProgressBar from "./ProgressBarController";
 
 const { ccclass, property } = cc._decorator;
-
-
 
 @ccclass
 export default class SceneManager extends cc.Component {
     private static instance: SceneManager = null;
 
     @property(cc.Prefab)
-    wheelSpinPrefab: cc.Prefab = null;
+    singleWheelSpinPrefab: cc.Prefab = null;
+    @property(cc.Prefab)
+    doubleWheelSpinPrefab: cc.Prefab = null;
     @property(cc.Prefab)
     loadingScreenPrefab: cc.Prefab = null;
     @property(cc.Prefab)
@@ -19,7 +20,7 @@ export default class SceneManager extends cc.Component {
     canvas: cc.Node = null;
 
     mainMenuUIInstance: cc.Node = null;
-    wheelInstance: cc.Node = null;
+    gameInstance: cc.Node = null;
     loadingScreenInstance: cc.Node = null;
 
 
@@ -48,29 +49,37 @@ export default class SceneManager extends cc.Component {
 
     }
 
-
-    onGameStart(): void {
+    private _launchGame(targetGamePrefab: cc.Prefab, loadingTime: number = DEFAULT_GAME_PROPERTIES.ENTER_LOADING_TIME): void {
         this.mainMenuUIInstance.destroy();
 
         this.onLoadingScreenLoaded(() => {
-            cc.log("StartButton Handled!");
-            this.wheelInstance = cc.instantiate(this.wheelSpinPrefab);
-            this.canvas.addChild(this.wheelInstance);
-        }, 5);
+            this.gameInstance = cc.instantiate(targetGamePrefab);
+            cc.log(`Started ${targetGamePrefab.name} Mode!`);
+            this.canvas.addChild(this.gameInstance);
+        }, loadingTime);
+    }
+
+
+    onSingleWheelLaunch(): void {
+        this._launchGame(this.singleWheelSpinPrefab, 2);
+    }
+
+    onDoubleWheelLaunch(): void {
+        this._launchGame(this.doubleWheelSpinPrefab, 2.5);
     }
 
     onGameExit(): void {
-        this.wheelInstance.destroy();
+        this.gameInstance.destroy();
 
         this.onLoadingScreenLoaded(() => {
             cc.log("ExitButton Handled");
             this.mainMenuUIInstance = cc.instantiate(this.mainMenuUIPrefab);
             this.canvas.addChild(this.mainMenuUIInstance);
-        }, 3);
+        });
     }
 
 
-    onLoadingScreenLoaded(cb: Function = null, delay: number = 2): void {
+    onLoadingScreenLoaded(cb: Function = null, delay: number = DEFAULT_GAME_PROPERTIES.EXIT_LOADING_TIME): void {
         this.loadingScreenInstance = cc.instantiate(this.loadingScreenPrefab);
         this.canvas.addChild(this.loadingScreenInstance);
         ProgressBar.setLoadingTime(delay);

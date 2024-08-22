@@ -136,8 +136,11 @@
       "__id__": 2
     },
     "_enabled": true,
-    "wheelSpinPrefab": {
+    "singleWheelSpinPrefab": {
       "__uuid__": "7c285c76-ba72-48a0-aca3-cd69eeb72dbe"
+    },
+    "doubleWheelSpinPrefab": {
+      "__uuid__": "e9477dda-9b38-4455-bee6-86737f581ba0"
     },
     "loadingScreenPrefab": {
       "__uuid__": "493d7f94-e3d9-4b2d-a05b-7693f931a229"

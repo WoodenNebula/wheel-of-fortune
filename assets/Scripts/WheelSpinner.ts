@@ -1,5 +1,6 @@
 import AudioManager from "./AudioManager";
 import DisplayResult from "./DisplayResult";
+import WheelBase from "./WheelBase";
 
 const { ccclass, property } = cc._decorator;
 
@@ -12,16 +13,7 @@ export enum SpinStates {
 }
 
 @ccclass
-export default class WheelSpiner extends cc.Component {
-    @property(cc.Node)
-    buttonNode: cc.Node = null;
-
-    @property(cc.Node)
-    buttonPressedNode: cc.Node = null;
-
-    @property(cc.Node)
-    wheelNode: cc.Node = null;
-
+export default class WheelSpiner extends WheelBase {
     spinState: SpinStates = SpinStates.NoSpin;
 
     spinComplete: boolean = false;
@@ -35,14 +27,12 @@ export default class WheelSpiner extends cc.Component {
     decelerationFactor: number = this.initialDecelerationFactor;
 
 
-
-
     switchState(to: SpinStates): void {
         switch (to) {
             case SpinStates.NoSpin:
                 this.lerpRatio = 1;
             case SpinStates.CostantSpeed:
-                this.buttonNode.active = true;
+                this.spinButtonNode.active = true;
                 this.spinComplete = true;
             case SpinStates.Accelerating:
             case SpinStates.Decelerating:
@@ -62,13 +52,13 @@ export default class WheelSpiner extends cc.Component {
         if (this.spinState == SpinStates.NoSpin) {
             AudioManager.Instance.playButtonClickAudio(true);
 
-            this.buttonNode.active = false;
+            this.spinButtonNode.active = false;
             this.switchState(SpinStates.Accelerating);
             this.spinComplete = false;
         }
         else if (this.spinState == SpinStates.CostantSpeed) {
             AudioManager.Instance.playButtonClickAudio(true);
-            this.buttonNode.active = false;
+            this.spinButtonNode.active = false;
             this.switchState(SpinStates.Decelerating);
         }
     }
@@ -84,14 +74,12 @@ export default class WheelSpiner extends cc.Component {
         this.wheelNode.angle = (this.wheelNode.angle + speed) % 360;
     }
 
+
     protected onLoad(): void {
         cc.log("Loaded Spinner Script");
     }
 
-    protected start(): void {
-        this.buttonNode.active = true;
-        this.buttonPressedNode.active = true;
-    }
+
 
     protected update(dt: number): void {
         switch (this.spinState) {

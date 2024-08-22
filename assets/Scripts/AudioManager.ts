@@ -31,13 +31,14 @@ export default class AudioManager extends cc.Component {
 
     public static toggleAudio() {
         AudioManager.isAudioEnabled = !AudioManager.isAudioEnabled;
+        AudioManager.Instance.saveState();
         cc.log("Aduio toggled!");
     }
 
 
     public static toggleMusic() {
         AudioManager.isBgMusicEnabled = !AudioManager.isBgMusicEnabled;
-
+        AudioManager.Instance.saveState();
 
         AudioManager.Instance.playBgMusic(AudioManager.isBgMusicEnabled);
         cc.log("Music toggled!");
