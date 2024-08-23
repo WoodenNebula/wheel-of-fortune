@@ -92,7 +92,7 @@ export default class ShopController extends cc.Component {
             COINS.updateBalance(coinPack.amount);
 
             AudioManager.playClip(this.transactionSuccessAudio);
-            this.mainMenuController.updateCoinAmount();
+            this.mainMenuController.syncCoinCountDisplay();
         }
         else if (!transactionSuccess) {
             // show failed message/feedback

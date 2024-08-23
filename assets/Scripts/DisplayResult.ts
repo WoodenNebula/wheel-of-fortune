@@ -1,12 +1,3 @@
-// Learn TypeScript:
-//  - https://docs.cocos.com/creator/manual/en/scripting/typescript.html
-// Learn Attribute:
-//  - https://docs.cocos.com/creator/manual/en/scripting/reference/attributes.html
-// Learn life-cycle callbacks:
-//  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
-
-import { COINS } from "./Coins";
-
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -20,31 +11,13 @@ export default class DisplayResult extends cc.Component {
     @property(cc.Node)
     wheelSpinner: cc.Node = null;
 
-
-    static s_shouldDisplay: boolean = false;
-    static s_finalRotation: number = null;
-
     segments: Map<number, string> = null;
     segmentCount: number = 0;
     segmentLength: number = 0;
 
-    public onSpinComplete(finalRotation: number) {
-        DisplayResult.s_shouldDisplay = true;
-        DisplayResult.s_finalRotation = finalRotation;
-
-        let pinValue: string = this.retrieveSegemntVal(DisplayResult.s_finalRotation);
-        COINS.updateBalance(parseInt(pinValue));
+    displayResult(finalRotationvalue: number) {
+        let pinValue: string = this.retrieveSegemntVal(finalRotationvalue);
         this.displayLabel.string = pinValue;
-    }
-
-    protected onLoad(): void {
-        cc.log("Display Script loaded!")
-
-    }
-
-    protected onDestroy(): void {
-        // this = null;
-        cc.log("Destroyed result script");
     }
 
 

@@ -22,6 +22,8 @@ export default class MainMenuController extends cc.Component {
     coinDisplayLabel: cc.Label = null;
 
     @property(cc.AudioClip)
+    transactionSuccessAudio: cc.AudioClip = null;
+    @property(cc.AudioClip)
     errorAudioClip: cc.AudioClip = null;
 
 
@@ -36,7 +38,7 @@ export default class MainMenuController extends cc.Component {
             return false;
         } else {
             COINS.updateBalance(-game.entryCost);
-            this.updateCoinAmount();
+            this.syncCoinCountDisplay();
             return true;
         }
     }
@@ -107,13 +109,13 @@ export default class MainMenuController extends cc.Component {
             this.bgMusicToggle.check();
     }
 
-    updateCoinAmount(): void {
+    syncCoinCountDisplay(): void {
         this.coinDisplayLabel.string = `x${COINS.getCount()}`;
     }
 
     resetCoins(): void {
         COINS.setCount(0);
-        this.updateCoinAmount();
+        this.syncCoinCountDisplay();
     }
 
 
@@ -139,6 +141,6 @@ export default class MainMenuController extends cc.Component {
         else
             this.bgMusicToggle.check();
 
-        this.updateCoinAmount();
+        this.syncCoinCountDisplay();
     }
 }

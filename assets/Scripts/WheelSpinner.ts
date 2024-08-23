@@ -2,6 +2,7 @@ import AudioManager from "./AudioManager";
 import DisplayResult from "./DisplayResult";
 import { SPIN_STATES } from "./GameConfig";
 import WheelBase from "./WheelBase";
+import WheelGameController from "./WheelGameController";
 
 const { ccclass, property } = cc._decorator;
 
@@ -11,9 +12,9 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class WheelSpiner extends WheelBase {
     @property(cc.Node)
-    displayResultNode: cc.Node = null;
+    wheelGameControllerNode: cc.Node = null;
 
-    resultDisplayer: DisplayResult = null;
+    wheelGameController: WheelGameController = null;
 
 
     spinState: SPIN_STATES = SPIN_STATES.NO_SPIN;
@@ -79,7 +80,7 @@ export default class WheelSpiner extends WheelBase {
 
     protected onLoad(): void {
         cc.log("Loaded Spinner Script");
-        this.resultDisplayer = this.displayResultNode.getComponent(DisplayResult);
+        this.wheelGameController = this.wheelGameControllerNode.getComponent(WheelGameController);
     }
 
 
@@ -103,10 +104,7 @@ export default class WheelSpiner extends WheelBase {
 
                 if (this.currentSpeed <= 0 || this.lerpRatio >= 1) {
                     this.switchState(SPIN_STATES.NO_SPIN);
-                    cc.log("FINAL ROTATION = " + this.wheelNode.angle % 360);
-
-                    cc.log(this.resultDisplayer.onSpinComplete)
-                    this.resultDisplayer.onSpinComplete(Math.floor(this.wheelNode.angle % 360));
+                    this.wheelGameController.onSpinComplete(Math.floor(this.wheelNode.angle % 360));
                 }
                 break;
         }
