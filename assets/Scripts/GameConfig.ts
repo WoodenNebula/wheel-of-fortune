@@ -3,6 +3,13 @@ export const DEFAULT_GAME_PROPERTIES = {
     EXIT_LOADING_TIME: 3
 }
 
+export enum SPIN_STATES {
+    NO_SPIN = 0,
+    ACCELERATING = 1,
+    CONSTANT_SPEED = 2,
+    DECELERATING = 3
+}
+
 export enum SHOP_COIN_PACKS {
     FIFTY = 50,
     HUNDRED = 100,
@@ -15,6 +22,7 @@ export const COIN_COST_LOOKUP: { [key in keyof typeof SHOP_COIN_PACKS]: number }
     HUNDRED: 199.99,
     FIVE_HUNDRED: 999.99
 }
+
 
 export const COIN_PURCHASE_PROPERTIES: {
     "name": string,
