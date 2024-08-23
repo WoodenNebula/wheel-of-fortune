@@ -14,6 +14,10 @@ export default class AudioManager extends cc.Component {
     @property(cc.Node)
     audioNode: cc.Node = null;
 
+    @property(cc.AudioClip)
+    buttonClickAudio: cc.AudioClip = null;
+
+
     musicSource: cc.AudioSource = null;
     buttonAudioSource: cc.AudioSource = null;
 
@@ -44,13 +48,23 @@ export default class AudioManager extends cc.Component {
         cc.log("Music toggled!");
     }
 
-
-    public static playButtonClickAudio(shouldPlay: boolean): void {
+    public static playClip(clip: cc.AudioClip): void {
         cc.log("Audio enabled: " + AudioManager.isAudioEnabled);
 
-        if (AudioManager.isAudioEnabled && shouldPlay) {
-            cc.log("playing Button click!");
+        if (AudioManager.isAudioEnabled) {
+            AudioManager.Instance.buttonAudioSource.clip = clip;
             AudioManager.Instance.buttonAudioSource.play();
+            // const tmpAudioNode = cc.instantiate(AudioManager.Instance.buttonAudioSource.node);
+            // const tmpAudioSrc = tmpAudioNode.getComponent(cc.AudioSource);
+            // tmpAudioSrc.clip = clip;
+            // tmpAudioSrc.play();
+        }
+    }
+
+    public static playButtonClickAudio(shouldPlay: boolean): void {
+        if (shouldPlay) {
+            cc.log("playing Button click!");
+            this.playClip(AudioManager.Instance.buttonClickAudio);
         }
     }
 

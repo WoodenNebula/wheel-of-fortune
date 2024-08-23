@@ -1,6 +1,9 @@
 import AudioManager from "./AudioManager";
 import SceneManager from "./SceneManager";
 
+import { COINS } from "./Coins";
+import { GAME_TYPES, gameData, gameProps, GAMES } from "./GameConfig";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
@@ -13,21 +16,55 @@ export default class MainMenuController extends cc.Component {
     bgMusicToggleNode: cc.Node = null;
     @property(cc.Node)
     audioToggleNode: cc.Node = null;
+    @property(cc.Node)
+    coinResetButton: cc.Node = null;
+    @property(cc.Label)
+    coinDisplayLabel: cc.Label = null;
+
+    @property(cc.AudioClip)
+    errorAudioClip: cc.AudioClip = null;
+
 
 
     audioToggle: cc.Toggle = null;
     bgMusicToggle: cc.Toggle = null;
 
+    // returns false if coin < entry fee else deducts entryfee and returns true
+    launchGameAttempt(game: gameData): boolean {
+        const usrCoin = COINS.getCount();
+        if (usrCoin < game.entryCost) {
+            return false;
+        } else {
+            COINS.updateBalance(-game.entryCost);
+            this.updateCoinAmount();
+            return true;
+        }
+    }
+
 
 
     onSingleWheelButtonClicked(): void {
-        AudioManager.playButtonClickAudio(true);
-        SceneManager.Instance.onSingleWheelLaunch();
+        if (this.launchGameAttempt(GAMES.SINGLE_WHEEL_SPIN)) {
+            AudioManager.playButtonClickAudio(true);
+            SceneManager.Instance.onSingleWheelLaunch();
+        }
+        else {
+            // Do some more stuff to show game cant be entered with current amount of coin
+            cc.warn("game launch failed!");
+            AudioManager.playClip(this.errorAudioClip);
+        }
+
     }
 
     onDoubleWheelButtonClick(): void {
-        AudioManager.playButtonClickAudio(true);
-        SceneManager.Instance.onDoubleWheelLaunch();
+        if (this.launchGameAttempt(GAMES.DOUBLE_WHEEL_SPIN)) {
+            AudioManager.playButtonClickAudio(true);
+            SceneManager.Instance.onDoubleWheelLaunch();
+        }
+        else {
+            // Do some more stuff to show game cant be entered with current amount of coin
+            AudioManager.playClip(this.errorAudioClip);
+        }
     }
 
 
@@ -70,11 +107,22 @@ export default class MainMenuController extends cc.Component {
             this.bgMusicToggle.check();
     }
 
+    updateCoinAmount(): void {
+        this.coinDisplayLabel.string = `x${COINS.getCount()}`;
+    }
+
+    resetCoins(): void {
+        COINS.setCount(0);
+        this.updateCoinAmount();
+    }
+
 
     protected onLoad(): void {
         cc.log("loaded MainMenu Controller");
         this.audioToggle = this.audioToggleNode.getComponent(cc.Toggle);
         this.bgMusicToggle = this.bgMusicToggleNode.getComponent(cc.Toggle);
+
+        // this.coinResetButton.active = false;
     }
 
     protected start(): void {
@@ -90,5 +138,7 @@ export default class MainMenuController extends cc.Component {
             this.bgMusicToggle.uncheck();
         else
             this.bgMusicToggle.check();
+
+        this.updateCoinAmount();
     }
 }

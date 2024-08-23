@@ -1,20 +1,22 @@
 import AudioManager from "./AudioManager";
 import DisplayResult from "./DisplayResult";
+import { SPIN_STATES } from "./GameConfig";
 import WheelBase from "./WheelBase";
 
 const { ccclass, property } = cc._decorator;
 
 
-export enum SpinStates {
-    NoSpin = 0,
-    Accelerating = 1,
-    CostantSpeed = 2,
-    Decelerating = 3
-}
+
 
 @ccclass
 export default class WheelSpiner extends WheelBase {
-    spinState: SpinStates = SpinStates.NoSpin;
+    @property(cc.Node)
+    displayResultNode: cc.Node = null;
+
+    resultDisplayer: DisplayResult = null;
+
+
+    spinState: SPIN_STATES = SPIN_STATES.NO_SPIN;
 
     spinComplete: boolean = false;
 
@@ -27,15 +29,15 @@ export default class WheelSpiner extends WheelBase {
     decelerationFactor: number = this.initialDecelerationFactor;
 
 
-    switchState(to: SpinStates): void {
+    switchState(to: SPIN_STATES): void {
         switch (to) {
-            case SpinStates.NoSpin:
+            case SPIN_STATES.NO_SPIN:
                 this.lerpRatio = 1;
-            case SpinStates.CostantSpeed:
+            case SPIN_STATES.CONSTANT_SPEED:
                 this.spinButtonNode.active = true;
                 this.spinComplete = true;
-            case SpinStates.Accelerating:
-            case SpinStates.Decelerating:
+            case SPIN_STATES.ACCELERATING:
+            case SPIN_STATES.DECELERATING:
                 cc.log("Spin State = " + to);
 
                 this.spinState = to;
@@ -49,17 +51,17 @@ export default class WheelSpiner extends WheelBase {
 
     onSpinButtonClick() {
         cc.log("Button Clicked!");
-        if (this.spinState == SpinStates.NoSpin) {
+        if (this.spinState == SPIN_STATES.NO_SPIN) {
             AudioManager.playButtonClickAudio(true);
 
             this.spinButtonNode.active = false;
-            this.switchState(SpinStates.Accelerating);
+            this.switchState(SPIN_STATES.ACCELERATING);
             this.spinComplete = false;
         }
-        else if (this.spinState == SpinStates.CostantSpeed) {
+        else if (this.spinState == SPIN_STATES.CONSTANT_SPEED) {
             AudioManager.playButtonClickAudio(true);
             this.spinButtonNode.active = false;
-            this.switchState(SpinStates.Decelerating);
+            this.switchState(SPIN_STATES.DECELERATING);
         }
     }
 
@@ -77,32 +79,34 @@ export default class WheelSpiner extends WheelBase {
 
     protected onLoad(): void {
         cc.log("Loaded Spinner Script");
+        this.resultDisplayer = this.displayResultNode.getComponent(DisplayResult);
     }
 
 
 
     protected update(dt: number): void {
         switch (this.spinState) {
-            case SpinStates.CostantSpeed:
+            case SPIN_STATES.CONSTANT_SPEED:
                 // const speed 
                 this.wheelNode.angle = (this.wheelNode.angle + this.currentSpeed) % 360;
                 break;
-            case SpinStates.Accelerating:
+            case SPIN_STATES.ACCELERATING:
                 this.rotateLerped(0, this.topSpeed, this.accelerationFactor, dt);
 
                 if (this.currentSpeed >= this.topSpeed || this.lerpRatio >= 1) {
                     cc.log("r = " + this.lerpRatio);
-                    this.switchState(SpinStates.CostantSpeed);
+                    this.switchState(SPIN_STATES.CONSTANT_SPEED);
                 }
                 break;
-            case SpinStates.Decelerating:
+            case SPIN_STATES.DECELERATING:
                 this.rotateLerped(this.topSpeed, 0, this.accelerationFactor, dt);
 
                 if (this.currentSpeed <= 0 || this.lerpRatio >= 1) {
-                    this.switchState(SpinStates.NoSpin);
+                    this.switchState(SPIN_STATES.NO_SPIN);
                     cc.log("FINAL ROTATION = " + this.wheelNode.angle % 360);
 
-                    DisplayResult.onSpinComplete(Math.floor(this.wheelNode.angle % 360));
+                    cc.log(this.resultDisplayer.onSpinComplete)
+                    this.resultDisplayer.onSpinComplete(Math.floor(this.wheelNode.angle % 360));
                 }
                 break;
         }

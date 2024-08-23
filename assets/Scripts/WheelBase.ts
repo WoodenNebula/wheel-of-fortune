@@ -1,3 +1,5 @@
+import DisplayResult from "./DisplayResult";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass

@@ -5,11 +5,12 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/manual/en/scripting/life-cycle-callbacks.html
 
+import { COINS } from "./Coins";
+
 const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class DisplayResult extends cc.Component {
-    public static instance: DisplayResult = null;
     @property(cc.Label)
     displayLabel: cc.Label = null;
 
@@ -27,10 +28,25 @@ export default class DisplayResult extends cc.Component {
     segmentCount: number = 0;
     segmentLength: number = 0;
 
-    public static onSpinComplete(finalRotation: number) {
+    public onSpinComplete(finalRotation: number) {
         DisplayResult.s_shouldDisplay = true;
         DisplayResult.s_finalRotation = finalRotation;
+
+        let pinValue: string = this.retrieveSegemntVal(DisplayResult.s_finalRotation);
+        COINS.updateBalance(parseInt(pinValue));
+        this.displayLabel.string = pinValue;
     }
+
+    protected onLoad(): void {
+        cc.log("Display Script loaded!")
+
+    }
+
+    protected onDestroy(): void {
+        // this = null;
+        cc.log("Destroyed result script");
+    }
+
 
     protected start(): void {
         cc.log("Display Result start");
@@ -45,16 +61,6 @@ export default class DisplayResult extends cc.Component {
         cc.log(this.segments);
     }
 
-
-
-    protected update(dt: number): void {
-        if (DisplayResult.s_shouldDisplay) {
-            // this.testRetrival();
-            let pinValue: string = this.retrieveSegemntVal(DisplayResult.s_finalRotation);
-            this.displayLabel.string = pinValue;
-            DisplayResult.s_shouldDisplay = false;
-        }
-    }
 
     testRetrival(): void {
         for (let i = 0; i < 360; i++) {

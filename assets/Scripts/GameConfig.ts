@@ -3,6 +3,7 @@ export const DEFAULT_GAME_PROPERTIES = {
     EXIT_LOADING_TIME: 3
 }
 
+
 export enum SPIN_STATES {
     NO_SPIN = 0,
     ACCELERATING = 1,
@@ -15,38 +16,52 @@ export enum SHOP_COIN_PACKS {
     HUNDRED = 100,
     FIVE_HUNDRED = 500
 }
+export type shopPackData = { price: number, amount: number };
 
-
-export const COIN_COST_LOOKUP: { [key in keyof typeof SHOP_COIN_PACKS]: number } = {
-    FIFTY: 99.99,
-    HUNDRED: 199.99,
-    FIVE_HUNDRED: 999.99
+export const SHOP_PACKS: { [key in keyof typeof SHOP_COIN_PACKS]: shopPackData } = {
+    FIFTY: { price: 99.99, amount: 50 },
+    HUNDRED: { price: 199.99, amount: 100 },
+    FIVE_HUNDRED: { price: 999.99, amount: 500 },
 }
 
 
 export const COIN_PURCHASE_PROPERTIES: {
     "name": string,
     "packType": SHOP_COIN_PACKS,
-    "price": number,
     "spritePath": string,
+    "price": number,
 }[] = [
         {
             "name": "PackOfFiveHundred",
             "packType": SHOP_COIN_PACKS.FIVE_HUNDRED,
             "spritePath": "assets\\Resources\\Textures\\filled-cart.png",
-            "price": COIN_COST_LOOKUP.FIVE_HUNDRED,
+            "price": SHOP_PACKS.FIVE_HUNDRED.price,
 
         },
         {
             "name": "PackOfHundred",
             "packType": SHOP_COIN_PACKS.HUNDRED,
             "spritePath": "assets\\Resources\\Textures\\empty-cart.png",
-            "price": COIN_COST_LOOKUP.HUNDRED
+            "price": SHOP_PACKS.HUNDRED.price
         },
         {
             "name": "PackOfFifty",
             "packType": SHOP_COIN_PACKS.FIFTY,
             "spritePath": "assets\\Resources\\Textures\\empty-cart-0.png",
-            "price": COIN_COST_LOOKUP.FIFTY
+            "price": SHOP_PACKS.HUNDRED.price
         },
     ]
+
+
+export enum GAME_TYPES {
+    SINGLE_WHEEL_SPIN,
+    DOUBLE_WHEEL_SPIN
+}
+
+export type gameData = { entryCost: number };
+export type gameProps = { [key in keyof typeof GAME_TYPES]: gameData };
+
+export const GAMES: gameProps = {
+    SINGLE_WHEEL_SPIN: { entryCost: 10 },
+    DOUBLE_WHEEL_SPIN: { entryCost: 20 }
+}
