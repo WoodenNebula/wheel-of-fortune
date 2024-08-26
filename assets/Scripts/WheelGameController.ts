@@ -20,7 +20,11 @@ export default class WheelGameController extends GameController {
     segmentParentNode: cc.Node = null;
 
     @property(cc.Node)
+    jackpotBannerNode: cc.Node = null;
+
+    @property(cc.Node)
     wheelSpinnerNode: cc.Node = null;
+
     wheelSpinner: WheelSpiner = null;
 
 
@@ -54,8 +58,12 @@ export default class WheelGameController extends GameController {
                 const feeValidation = this.validateEntryFee(GAMES.SINGLE_WHEEL_SPIN);
                 if (feeValidation) {
                     AudioManager.playButtonClickAudio(true);
+
                     this.wheelSpinner.startSpin();
-                    cc.log("LABEL = " + this.displayLabel.string);
+
+                    this.jackpotBannerNode.active = false;
+
+                    this.displayLabel.node.active = true;
                     this.displayLabel.string = "SPINNING...";
                     this.displayLabel.node.color = cc.Color.YELLOW;
                 }
@@ -100,14 +108,29 @@ export default class WheelGameController extends GameController {
 
 
     private _displayResult(resultantData: string) {
-        // if(parseInt(resultantData))
         const resultStringHeader = "YOU WON ";
         const resultStringFooter = " COINS";
         let displayString = resultStringHeader + resultantData;
 
-        // strip "coins" during jackpot or refund
-        if (resultantData != WHEEL_SPECIAL_WINS.REFUND && resultantData != WHEEL_SPECIAL_WINS.JACKPOT)
+        // handle jackpot case
+        if (resultantData == WHEEL_SPECIAL_WINS.JACKPOT) {
+            this.jackpotBannerNode.scaleX = 0;
+            this.jackpotBannerNode.scaleY = 0;
+
+            this.jackpotBannerNode.active = true;
+            this.displayLabel.node.active = false;
+            cc.tween(this.jackpotBannerNode)
+                .to(0.5, { scaleX: 1, scaleY: 1 }, { easing: "expoIn" })
+                .start();
+
+            return;
+        }
+
+        // add "coins" for any normal win
+        if (resultantData != WHEEL_SPECIAL_WINS.REFUND) {
             displayString += resultStringFooter;
+        }
+
 
         this.displayLabel.enabled = true;
         this.displayLabel.node.active = true;
