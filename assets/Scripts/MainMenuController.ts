@@ -2,7 +2,7 @@ import AudioManager from "./AudioManager";
 import SceneManager from "./SceneManager";
 
 import { COINS } from "./Coins";
-import { GAME_TYPES, gameData, gameProps, GAMES } from "./GameConfig";
+import { gameData, GAMES } from "./GameConfig";
 
 const { ccclass, property } = cc._decorator;
 

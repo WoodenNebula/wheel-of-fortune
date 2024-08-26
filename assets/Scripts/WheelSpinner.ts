@@ -1,5 +1,4 @@
 import AudioManager from "./AudioManager";
-import DisplayResult from "./DisplayResult";
 import { SPIN_STATES } from "./GameConfig";
 import WheelBase from "./WheelBase";
 import WheelGameController from "./WheelGameController";

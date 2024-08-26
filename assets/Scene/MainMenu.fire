@@ -609,6 +609,9 @@
     "audioNode": {
       "__id__": 12
     },
+    "buttonClickAudio": {
+      "__uuid__": "693883ee-625a-4ffd-b4e5-826ab66c0b61"
+    },
     "_id": "53QCxzRIRG6KOWkJOr+Glw"
   }
 ]

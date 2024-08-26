@@ -105,7 +105,7 @@ export default class ShopController extends cc.Component {
 
 
     private _processTransaction(costAmount: number): boolean {
-        let success = Math.random() < 0.8;
+        let success = Math.random() < 0.6;
         cc.log("Processed amount " + costAmount);
         return success;
     }
