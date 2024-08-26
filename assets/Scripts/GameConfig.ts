@@ -65,3 +65,17 @@ export const GAMES: gameProps = {
     SINGLE_WHEEL_SPIN: { entryCost: 10 },
     DOUBLE_WHEEL_SPIN: { entryCost: 20 }
 }
+
+
+export const WHEEL_BET_MULTIPLIERS = {
+    BASE: 1,
+    FIVE: 5,
+    TEN: 10,
+    JACKPOT: 50
+}
+
+
+export const WHEEL_SPECIAL_WINS = {
+    REFUND: "REFUND",
+    JACKPOT: "JACKPOT"
+}

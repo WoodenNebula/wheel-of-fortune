@@ -1,7 +1,7 @@
 import SceneManager from "./SceneManager";
 import AudioManager from "./AudioManager";
 
-import { GAMES, SPIN_STATES } from "./GameConfig";
+import { GAMES, SPIN_STATES, WHEEL_BET_MULTIPLIERS, WHEEL_SPECIAL_WINS } from "./GameConfig";
 import { COINS } from "./Coins";
 import WheelSpiner from "./WheelSpinner";
 import GameController from "./GameController";
@@ -24,20 +24,26 @@ export default class WheelGameController extends GameController {
     wheelSpinner: WheelSpiner = null;
 
 
-    segments: Map<number, string> = null;
+    segments: Map<number, cc.Label> = null;
     segmentCount: number = 0;
     segmentLength: number = 0;
+
+    betMultiplier: number = null;
+    betAmount: number = null;
 
 
     onSpinComplete(finalRotation: number): void {
         const result = this._retrieveDataUnderPin(finalRotation);
 
-        const coinWinAmount = parseInt(result);
-        COINS.updateBalance(coinWinAmount);
-        this.syncCoinCountDisplay();
-        this._displayResult(result);
+        // let coinWinAmount = parseInt(result);
+        const coinWinAmount = this._getWinAmount(result/* , this.betAmount, this.betMultiplier */);
+        cc.log("Won " + coinWinAmount);
 
-        // AudioManager.playClip(this.successAudioClip);
+        COINS.updateBalance(coinWinAmount);
+
+        this.syncCoinCountDisplay();
+
+        this._displayResult(result);
     }
 
 
@@ -49,6 +55,9 @@ export default class WheelGameController extends GameController {
                 if (feeValidation) {
                     AudioManager.playButtonClickAudio(true);
                     this.wheelSpinner.startSpin();
+                    cc.log("LABEL = " + this.displayLabel.string);
+                    this.displayLabel.string = "SPINNING...";
+                    this.displayLabel.node.color = cc.Color.YELLOW;
                 }
                 else {
                     AudioManager.playClip(this.errorAudioClip);
@@ -71,22 +80,100 @@ export default class WheelGameController extends GameController {
     }
 
 
+    private _getWinAmount(segmentString: string,
+        betAmount: number = GAMES.SINGLE_WHEEL_SPIN.entryCost,
+        betMultiplier: number = WHEEL_BET_MULTIPLIERS.BASE): number {
+        // debugger
+        let winAmount: number = null;
+
+        if (segmentString == WHEEL_SPECIAL_WINS.REFUND) {
+            winAmount = betAmount * betMultiplier;
+        }
+        else if (segmentString == WHEEL_SPECIAL_WINS.JACKPOT) {
+            winAmount = betAmount * betMultiplier * WHEEL_BET_MULTIPLIERS.JACKPOT;
+        }
+        else {
+            winAmount = parseInt(segmentString);
+        }
+        return winAmount;
+    }
+
+
     private _displayResult(resultantData: string) {
         // if(parseInt(resultantData))
         const resultStringHeader = "YOU WON ";
         const resultStringFooter = " COINS";
-        this.displayLabel.string = resultStringHeader + resultantData + resultStringFooter;
+        let displayString = resultStringHeader + resultantData;
+
+        // strip "coins" during jackpot or refund
+        if (resultantData != WHEEL_SPECIAL_WINS.REFUND && resultantData != WHEEL_SPECIAL_WINS.JACKPOT)
+            displayString += resultStringFooter;
+
+        this.displayLabel.enabled = true;
+        this.displayLabel.node.active = true;
+        this.displayLabel.node.color = cc.Color.GREEN;
+
+        this.displayLabel.string = displayString;
     }
 
 
-    private _populateSegments() {
+    private _populateSegmentMap() {
         this.segments = new Map();
         this.segmentCount = this.segmentParentNode.children.length;
         this.segmentLength = Math.floor(360 / this.segmentCount);
 
         for (let i = 0; i < this.segmentCount; i++) {
-            this.segments.set(i, this.segmentParentNode.children[i].getComponent(cc.Label).string);
+            this.segments.set(i, this.segmentParentNode.children[i].getComponent(cc.Label));
         }
+    }
+
+
+    private _fillSegmentWithRandomValues() {
+        this.segments.forEach((segment) => {
+            let r = Math.random();
+            while (r < 1) {
+                r *= 10;
+            }
+            r = Math.floor(r)
+
+            segment.string = r.toString();
+            segment.fontSize = 40;
+            // segment.node.angle;
+        })
+    }
+
+
+    private _getRandomIndex(): number {
+        let index = 0;
+        do {
+            index = Math.random() * 10;
+            while (Math.trunc(index) == 0) {
+                index = index * 10;
+            }
+
+            index = Math.trunc(index);
+        }
+        while (index >= this.segments.size);
+
+        cc.log("Random index  = " + index);
+        return index;
+    }
+
+    private _assignSpecialWinSegment(specialWinValue: string) {
+        let i: number;
+        do {
+            i = this._getRandomIndex();
+        } while (Number.isNaN(parseInt(this.segments.get(i).string)));
+
+        let targetLabel = this.segments.get(i);
+        targetLabel.string = specialWinValue;
+        targetLabel.fontSize = 20;
+        // offset is taken from 3 since third segment is horizontal, subtract one as indexing starts from 0
+        targetLabel.node.angle = this.segmentLength * (3 - i - 1);
+    }
+
+    private _refundFee(): void {
+        COINS.setCount(GAMES.SINGLE_WHEEL_SPIN.entryCost * this.betMultiplier);
     }
 
 
@@ -106,7 +193,7 @@ export default class WheelGameController extends GameController {
 
         // for 1st segment
         if (angle >= rangeStart || angle < rangeEnd) {
-            return this.segments.get(0);
+            return this.segments.get(0).string;
         }
 
         //  for segment >= 0
@@ -115,7 +202,7 @@ export default class WheelGameController extends GameController {
             rangeEnd += this.segmentLength;
 
             if (angle >= rangeStart && angle < rangeEnd) {
-                return this.segments.get(i);
+                return this.segments.get(i).string;
             }
         }
 
@@ -128,7 +215,11 @@ export default class WheelGameController extends GameController {
         cc.log("Single Wheel Game (controller) started");
         this.wheelSpinner = this.wheelSpinnerNode.getComponent(WheelSpiner);
 
-        this._populateSegments();
+        this._populateSegmentMap();
+        this._fillSegmentWithRandomValues();
+        this._assignSpecialWinSegment(WHEEL_SPECIAL_WINS.JACKPOT);
+        this._assignSpecialWinSegment(WHEEL_SPECIAL_WINS.REFUND);
+
         this.syncCoinCountDisplay();
         cc.log(this.segments);
     }
