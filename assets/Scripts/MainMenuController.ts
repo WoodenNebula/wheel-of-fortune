@@ -1,13 +1,14 @@
 import AudioManager from "./AudioManager";
 import SceneManager from "./SceneManager";
+import GameController from "./GameController";
 
-import { COINS } from "./Coins";
-import { gameData, GAMES } from "./GameConfig";
+import { GAMES } from "./GameConfig";
+
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class MainMenuController extends cc.Component {
+export default class MainMenuController extends GameController {
 
     @property(cc.Node)
     startButtonNode: cc.Node = null;
@@ -18,50 +19,21 @@ export default class MainMenuController extends cc.Component {
     audioToggleNode: cc.Node = null;
     @property(cc.Node)
     coinResetButton: cc.Node = null;
-    @property(cc.Label)
-    coinDisplayLabel: cc.Label = null;
-
-    @property(cc.AudioClip)
-    transactionSuccessAudio: cc.AudioClip = null;
-    @property(cc.AudioClip)
-    errorAudioClip: cc.AudioClip = null;
-
 
 
     audioToggle: cc.Toggle = null;
     bgMusicToggle: cc.Toggle = null;
 
-    // returns false if coin < entry fee else deducts entryfee and returns true
-    launchGameAttempt(game: gameData): boolean {
-        const usrCoin = COINS.getCount();
-        if (usrCoin < game.entryCost) {
-            return false;
-        } else {
-            COINS.updateBalance(-game.entryCost);
-            this.syncCoinCountDisplay();
-            return true;
-        }
-    }
-
-
 
     onSingleWheelButtonClicked(): void {
-        if (this.launchGameAttempt(GAMES.SINGLE_WHEEL_SPIN)) {
-            AudioManager.playButtonClickAudio(true);
-            SceneManager.Instance.onSingleWheelLaunch();
-        }
-        else {
-            // Do some more stuff to show game cant be entered with current amount of coin
-            cc.warn("game launch failed!");
-            AudioManager.playClip(this.errorAudioClip);
-        }
-
+        AudioManager.playButtonClickAudio(true);
+        SceneManager.Instance.launchSingleWheelGame();
     }
 
     onDoubleWheelButtonClick(): void {
-        if (this.launchGameAttempt(GAMES.DOUBLE_WHEEL_SPIN)) {
+        if (this.validateEntryFee(GAMES.DOUBLE_WHEEL_SPIN)) {
             AudioManager.playButtonClickAudio(true);
-            SceneManager.Instance.onDoubleWheelLaunch();
+            SceneManager.Instance.launchDoubleWheelGame();
         }
         else {
             // Do some more stuff to show game cant be entered with current amount of coin
@@ -107,15 +79,6 @@ export default class MainMenuController extends cc.Component {
             this.bgMusicToggle.uncheck();
         else
             this.bgMusicToggle.check();
-    }
-
-    syncCoinCountDisplay(): void {
-        this.coinDisplayLabel.string = `x${COINS.getCount()}`;
-    }
-
-    resetCoins(): void {
-        COINS.setCount(0);
-        this.syncCoinCountDisplay();
     }
 
 

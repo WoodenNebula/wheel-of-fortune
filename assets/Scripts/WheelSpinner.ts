@@ -1,11 +1,8 @@
-import AudioManager from "./AudioManager";
 import { SPIN_STATES } from "./GameConfig";
 import WheelBase from "./WheelBase";
 import WheelGameController from "./WheelGameController";
 
 const { ccclass, property } = cc._decorator;
-
-
 
 
 @ccclass
@@ -14,7 +11,6 @@ export default class WheelSpiner extends WheelBase {
     wheelGameControllerNode: cc.Node = null;
 
     wheelGameController: WheelGameController = null;
-
 
     spinState: SPIN_STATES = SPIN_STATES.NO_SPIN;
 
@@ -30,17 +26,24 @@ export default class WheelSpiner extends WheelBase {
 
 
     switchState(to: SPIN_STATES): void {
+        this.spinState = to;
+        cc.log("Switched Spin State = " + to);
+
         switch (to) {
             case SPIN_STATES.NO_SPIN:
                 this.lerpRatio = 1;
-            case SPIN_STATES.CONSTANT_SPEED:
                 this.spinButtonNode.active = true;
                 this.spinComplete = true;
+                break;
+            case SPIN_STATES.CONSTANT_SPEED:
+                this.lerpRatio = 1;
+                this.spinButtonNode.active = true;
+                this.spinComplete = false;
+                break;
             case SPIN_STATES.ACCELERATING:
             case SPIN_STATES.DECELERATING:
-                cc.log("Spin State = " + to);
-
-                this.spinState = to;
+                this.spinButtonNode.active = false;
+                this.spinComplete = false;
                 this.lerpRatio = 0;
                 break;
             default:
@@ -48,21 +51,21 @@ export default class WheelSpiner extends WheelBase {
         }
     }
 
+    get currentSpinState(): SPIN_STATES {
+        return this.spinState;
+    }
 
-    onSpinButtonClick() {
-        cc.log("Button Clicked!");
-        if (this.spinState == SPIN_STATES.NO_SPIN) {
-            AudioManager.playButtonClickAudio(true);
 
-            this.spinButtonNode.active = false;
-            this.switchState(SPIN_STATES.ACCELERATING);
-            this.spinComplete = false;
-        }
-        else if (this.spinState == SPIN_STATES.CONSTANT_SPEED) {
-            AudioManager.playButtonClickAudio(true);
-            this.spinButtonNode.active = false;
-            this.switchState(SPIN_STATES.DECELERATING);
-        }
+    startSpin(): void {
+        this.switchState(SPIN_STATES.ACCELERATING);
+
+        this.spinButtonNode.active = false;
+        this.spinComplete = false;
+    }
+
+    stopSpin(): void {
+        this.switchState(SPIN_STATES.DECELERATING);
+        this.spinButtonNode.active = false;
     }
 
 

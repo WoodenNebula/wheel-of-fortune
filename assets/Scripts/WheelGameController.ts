@@ -1,22 +1,18 @@
 import SceneManager from "./SceneManager";
 import AudioManager from "./AudioManager";
 
+import { GAMES, SPIN_STATES } from "./GameConfig";
 import { COINS } from "./Coins";
+import WheelSpiner from "./WheelSpinner";
+import GameController from "./GameController";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class WheelGameController extends cc.Component {
+export default class WheelGameController extends GameController {
     @property(cc.Node)
     exitButtonNode: cc.Node = null;
 
-    @property(cc.Label)
-    coinDisplayLabel: cc.Label = null;
-    @property(cc.AudioClip)
-    coinWinAudio: cc.AudioClip = null;
-
-
-    // Display script
     @property(cc.Label)
     displayLabel: cc.Label = null;
 
@@ -24,16 +20,14 @@ export default class WheelGameController extends cc.Component {
     segmentParentNode: cc.Node = null;
 
     @property(cc.Node)
-    wheelSpinner: cc.Node = null;
+    wheelSpinnerNode: cc.Node = null;
+    wheelSpinner: WheelSpiner = null;
+
 
     segments: Map<number, string> = null;
     segmentCount: number = 0;
     segmentLength: number = 0;
 
-    // controller script
-    syncCoinCountDisplay(): void {
-        this.coinDisplayLabel.string = `x${COINS.getCount()}`;
-    }
 
     onSpinComplete(finalRotation: number): void {
         const result = this._retrieveDataUnderPin(finalRotation);
@@ -43,7 +37,31 @@ export default class WheelGameController extends cc.Component {
         this.syncCoinCountDisplay();
         this._displayResult(result);
 
-        AudioManager.playClip(this.coinWinAudio);
+        // AudioManager.playClip(this.successAudioClip);
+    }
+
+
+    onSpinButtonClicked(): void {
+        cc.log("Button Clicked!");
+        switch (this.wheelSpinner.currentSpinState) {
+            case SPIN_STATES.NO_SPIN:
+                const feeValidation = this.validateEntryFee(GAMES.SINGLE_WHEEL_SPIN);
+                if (feeValidation) {
+                    AudioManager.playButtonClickAudio(true);
+                    this.wheelSpinner.startSpin();
+                }
+                else {
+                    AudioManager.playClip(this.errorAudioClip);
+                }
+                break;
+
+            case SPIN_STATES.CONSTANT_SPEED:
+                AudioManager.playButtonClickAudio(true);
+                this.wheelSpinner.stopSpin();
+
+            default:
+                break;
+        }
     }
 
 
@@ -54,8 +72,12 @@ export default class WheelGameController extends cc.Component {
 
 
     private _displayResult(resultantData: string) {
-        this.displayLabel.string = resultantData;
+        // if(parseInt(resultantData))
+        const resultStringHeader = "YOU WON ";
+        const resultStringFooter = " COINS";
+        this.displayLabel.string = resultStringHeader + resultantData + resultStringFooter;
     }
+
 
     private _populateSegments() {
         this.segments = new Map();
@@ -65,16 +87,6 @@ export default class WheelGameController extends cc.Component {
         for (let i = 0; i < this.segmentCount; i++) {
             this.segments.set(i, this.segmentParentNode.children[i].getComponent(cc.Label).string);
         }
-    }
-
-
-    // Display Result script
-    protected start(): void {
-        cc.log("Single Wheel Game (controller) started");
-
-        this._populateSegments();
-        this.syncCoinCountDisplay();
-        cc.log(this.segments);
     }
 
 
@@ -110,4 +122,14 @@ export default class WheelGameController extends cc.Component {
         return null;
     }
 
+
+    // Display Result script
+    protected start(): void {
+        cc.log("Single Wheel Game (controller) started");
+        this.wheelSpinner = this.wheelSpinnerNode.getComponent(WheelSpiner);
+
+        this._populateSegments();
+        this.syncCoinCountDisplay();
+        cc.log(this.segments);
+    }
 }

@@ -60,11 +60,11 @@ export default class SceneManager extends cc.Component {
     }
 
 
-    onSingleWheelLaunch(): void {
+    launchSingleWheelGame(): void {
         this._launchGame(this.singleWheelSpinPrefab, 2);
     }
 
-    onDoubleWheelLaunch(): void {
+    launchDoubleWheelGame(): void {
         this._launchGame(this.doubleWheelSpinPrefab, 2.5);
     }
 

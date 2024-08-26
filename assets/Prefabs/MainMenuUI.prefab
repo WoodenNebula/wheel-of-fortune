@@ -1181,6 +1181,15 @@
       "__id__": 28
     },
     "_enabled": true,
+    "coinDisplayLabel": {
+      "__id__": 14
+    },
+    "successAudioClip": {
+      "__uuid__": "794d50bd-247d-49b1-bfcf-ec614fbb6201"
+    },
+    "errorAudioClip": {
+      "__uuid__": "26b8662e-feec-4792-bebc-49a77f2207cc"
+    },
     "startButtonNode": {
       "__id__": 30
     },
@@ -1192,13 +1201,6 @@
     },
     "coinResetButton": {
       "__id__": 18
-    },
-    "coinDisplayLabel": {
-      "__id__": 14
-    },
-    "transactionSuccessAudio": null,
-    "errorAudioClip": {
-      "__uuid__": "26b8662e-feec-4792-bebc-49a77f2207cc"
     },
     "_id": ""
   },
@@ -2434,7 +2436,7 @@
         "__id__": 67
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [],
     "_prefab": {
       "__id__": 135
