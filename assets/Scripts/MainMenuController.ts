@@ -1,6 +1,6 @@
 import AudioManager from "./AudioManager";
 import SceneManager from "./SceneManager";
-import GameController from "./GameController";
+import ControllerBase from "./ControllerBase";
 
 import { GAMES } from "./GameConfig";
 
@@ -8,7 +8,7 @@ import { GAMES } from "./GameConfig";
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class MainMenuController extends GameController {
+export default class MainMenuController extends ControllerBase {
 
     @property(cc.Node)
     startButtonNode: cc.Node = null;
@@ -31,7 +31,7 @@ export default class MainMenuController extends GameController {
     }
 
     onDoubleWheelButtonClick(): void {
-        if (this.validateEntryFee(GAMES.DOUBLE_WHEEL_SPIN)) {
+        if (this.hasBetAmount(GAMES.DOUBLE_WHEEL_SPIN, 1)) {
             AudioManager.playButtonClickAudio(true);
             SceneManager.Instance.launchDoubleWheelGame();
         }

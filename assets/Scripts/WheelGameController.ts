@@ -2,14 +2,13 @@ import SceneManager from "./SceneManager";
 import AudioManager from "./AudioManager";
 
 import { GAMES, SPIN_STATES, WHEEL_BET_MULTIPLIERS, WHEEL_SPECIAL_WINS } from "./GameConfig";
-import { COINS } from "./Coins";
 import WheelSpiner from "./WheelSpinner";
-import GameController from "./GameController";
+import ControllerBase from "./ControllerBase";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class WheelGameController extends GameController {
+export default class WheelGameController extends ControllerBase {
     @property(cc.Node)
     exitButtonNode: cc.Node = null;
 
@@ -25,10 +24,24 @@ export default class WheelGameController extends GameController {
     @property(cc.Node)
     wheelSpinnerNode: cc.Node = null;
 
+    @property(cc.Node)
+    betMultiplierParentNode: cc.Node = null;
+
+    @property(cc.Node)
+    betMultiplierIncreaseButtonNode: cc.Node = null;
+
+    @property(cc.Node)
+    betMultiplierDecreaseButtonNode: cc.Node = null;
+
+    @property(cc.Label)
+    betMultiplierLabel: cc.Label = null;
+
     wheelSpinner: WheelSpiner = null;
 
 
     segments: Map<number, cc.Label> = null;
+    baseSegmentValues: Array<number> = null;
+
     segmentCount: number = 0;
     segmentLength: number = 0;
 
@@ -37,15 +50,15 @@ export default class WheelGameController extends GameController {
 
 
     onSpinComplete(finalRotation: number): void {
-        const result = this._retrieveDataUnderPin(finalRotation);
+        this.betMultiplierParentNode.active = true;
 
-        // let coinWinAmount = parseInt(result);
-        const coinWinAmount = this._getWinAmount(result/* , this.betAmount, this.betMultiplier */);
+        const result = this._retrieveDataUnderPin(finalRotation);
+        // const result = WHEEL_SPECIAL_WINS.REFUND;
+        const betAmount = GAMES.SINGLE_WHEEL_SPIN.entryCost * this.betMultiplier
+        const coinWinAmount = this._getWinAmount(result, betAmount);
         cc.log("Won " + coinWinAmount);
 
-        COINS.updateBalance(coinWinAmount);
-
-        this.syncCoinCountDisplay();
+        this.updateCoins(coinWinAmount);
 
         this._displayResult(result);
     }
@@ -55,9 +68,14 @@ export default class WheelGameController extends GameController {
         cc.log("Button Clicked!");
         switch (this.wheelSpinner.currentSpinState) {
             case SPIN_STATES.NO_SPIN:
-                const feeValidation = this.validateEntryFee(GAMES.SINGLE_WHEEL_SPIN);
-                if (feeValidation) {
+                if (this.hasBetAmount(GAMES.SINGLE_WHEEL_SPIN, this.betMultiplier)) {
+                    const entryFee = GAMES.SINGLE_WHEEL_SPIN.entryCost * this.betMultiplier;
+
+                    this.updateCoins(-entryFee);
+
                     AudioManager.playButtonClickAudio(true);
+
+                    this.betMultiplierParentNode.active = false;
 
                     this.wheelSpinner.startSpin();
 
@@ -69,6 +87,7 @@ export default class WheelGameController extends GameController {
                 }
                 else {
                     AudioManager.playClip(this.errorAudioClip);
+                    // display not enough coins feedback
                 }
                 break;
 
@@ -76,8 +95,45 @@ export default class WheelGameController extends GameController {
                 AudioManager.playButtonClickAudio(true);
                 this.wheelSpinner.stopSpin();
 
+
+
             default:
                 break;
+        }
+    }
+
+
+    onMultiplierChanged(event: cc.Event, deltaValue: string): void {
+        let del: number = parseInt(deltaValue);
+        // change multiplier value 
+        if (del < 0)
+            this.betMultiplier = Math.max(WHEEL_BET_MULTIPLIERS.MIN, this.betMultiplier + del);
+        else if (del > 0)
+            this.betMultiplier = Math.min(WHEEL_BET_MULTIPLIERS.MAX, this.betMultiplier + del);
+
+        // update multiplier display
+        this.betMultiplierLabel.string = "x" + this.betMultiplier + ".0";
+
+        // disable decrease or increase button on limit bet
+        if (this.betMultiplier == 1) {
+            this.betMultiplierDecreaseButtonNode.active = false;
+        }
+        else if (this.betMultiplier == 5) {
+            this.betMultiplierIncreaseButtonNode.active = false;
+        }
+        else {
+            this.betMultiplierIncreaseButtonNode.active = true;
+            this.betMultiplierDecreaseButtonNode.active = true;
+        }
+
+        // update value
+        for (let i = 0; i < this.segments.size; i++) {
+            if (Number.isNaN(this.baseSegmentValues[i]))
+                continue;
+            const newSegmentValue = this.baseSegmentValues[i] * this.betMultiplier;
+            cc.log(`(old, new) = (${this.baseSegmentValues[i]}, ${newSegmentValue})`);
+
+            this.segments.get(i).string = newSegmentValue.toString();
         }
     }
 
@@ -88,17 +144,15 @@ export default class WheelGameController extends GameController {
     }
 
 
-    private _getWinAmount(segmentString: string,
-        betAmount: number = GAMES.SINGLE_WHEEL_SPIN.entryCost,
-        betMultiplier: number = WHEEL_BET_MULTIPLIERS.BASE): number {
+    private _getWinAmount(segmentString: string, betAmount: number): number {
         // debugger
         let winAmount: number = null;
 
         if (segmentString == WHEEL_SPECIAL_WINS.REFUND) {
-            winAmount = betAmount * betMultiplier;
+            winAmount = betAmount;
         }
         else if (segmentString == WHEEL_SPECIAL_WINS.JACKPOT) {
-            winAmount = betAmount * betMultiplier * WHEEL_BET_MULTIPLIERS.JACKPOT;
+            winAmount = WHEEL_BET_MULTIPLIERS.JACKPOT;
         }
         else {
             winAmount = parseInt(segmentString);
@@ -195,10 +249,6 @@ export default class WheelGameController extends GameController {
         targetLabel.node.angle = this.segmentLength * (3 - i - 1);
     }
 
-    private _refundFee(): void {
-        COINS.setCount(GAMES.SINGLE_WHEEL_SPIN.entryCost * this.betMultiplier);
-    }
-
 
     private _testRetrival(): void {
         for (let i = 0; i < 360; i++) {
@@ -242,6 +292,16 @@ export default class WheelGameController extends GameController {
         this._fillSegmentWithRandomValues();
         this._assignSpecialWinSegment(WHEEL_SPECIAL_WINS.JACKPOT);
         this._assignSpecialWinSegment(WHEEL_SPECIAL_WINS.REFUND);
+
+        this.baseSegmentValues = new Array<number>();
+
+        for (let i = 0; i < this.segments.size; i++) {
+            this.baseSegmentValues[i] = parseInt(this.segments.get(i).string);
+        }
+
+        this.betAmount = GAMES.SINGLE_WHEEL_SPIN.entryCost;
+        this.betMultiplier = 1;
+        this.betMultiplierDecreaseButtonNode.active = false;
 
         this.syncCoinCountDisplay();
         cc.log(this.segments);

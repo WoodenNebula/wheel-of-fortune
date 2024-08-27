@@ -1,5 +1,6 @@
 import AudioManager from "./AudioManager";
 import { COINS } from "./Coins"
+import ControllerBase from "./ControllerBase";
 import { SHOP_COIN_PACKS, SHOP_PACKS, shopPackData } from "./GameConfig";
 import MainMenuController from "./MainMenuController";
 
@@ -7,7 +8,7 @@ const { ccclass, property } = cc._decorator;
 
 
 @ccclass
-export default class ShopController extends cc.Component {
+export default class ShopController extends ControllerBase {
     @property(cc.Node)
     mainMenuControllerNode: cc.Node = null;
     @property(cc.Node)
@@ -89,10 +90,9 @@ export default class ShopController extends cc.Component {
         if (transactionSuccess) {
             cc.log("Transaction success!");
             // show success feedback
-            COINS.updateBalance(coinPack.amount);
+            this.updateCoins(coinPack.amount)
 
             AudioManager.playClip(this.transactionSuccessAudio);
-            this.mainMenuController.syncCoinCountDisplay();
         }
         else if (!transactionSuccess) {
             // show failed message/feedback

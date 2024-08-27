@@ -71,7 +71,9 @@ export const WHEEL_BET_MULTIPLIERS = {
     BASE: 1,
     FIVE: 5,
     TEN: 10,
-    JACKPOT: 50
+    JACKPOT: 200,
+    MAX: 5,
+    MIN: 1
 }
 
 
