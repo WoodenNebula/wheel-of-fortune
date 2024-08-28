@@ -3,6 +3,7 @@ import { Coins } from "./Coins";
 import ShopController from "./ShopController";
 import GameManager from "./GameManager";
 import { AVAILABLE_GAMES } from "./GameConfig";
+import SceneManager from "./SceneManager";
 
 
 const { ccclass, property } = cc._decorator;
@@ -25,11 +26,6 @@ export default class MainMenuController extends cc.Component {
     @property(cc.Label)
     coinAnimLabel: cc.Label = null;
 
-    @property(cc.Prefab)
-    shopPrefab: cc.Prefab = null;
-
-    shopNode: cc.Node = null;
-
     audioToggle: cc.Toggle = null;
     bgMusicToggle: cc.Toggle = null;
 
@@ -39,13 +35,7 @@ export default class MainMenuController extends cc.Component {
     }
 
     onShopButtonClicked(): void {
-        this.shopNode = cc.instantiate(this.shopPrefab);
-        this.node.parent.addChild(this.shopNode);
-
-        const shopCtrl = this.shopNode.children[this.shopNode.childrenCount - 1].getComponent(ShopController);
-
-        shopCtrl.init(this.coinLabel, this.coinAnimLabel, () => { this.shopNode.destroy(); });
-        shopCtrl.openShop();
+        SceneManager.loadShop(this.coinLabel, this.coinAnimLabel);
     }
 
     onSingleWheelButtonClicked(): void {

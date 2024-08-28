@@ -1,5 +1,6 @@
 import { DEFAULT_GAME_PROPERTIES } from "./GameConfig";
 import ProgressBar from "./ProgressBarController";
+import ShopController from "./ShopController";
 
 const { ccclass, property } = cc._decorator;
 
@@ -15,6 +16,8 @@ export default class SceneManager extends cc.Component {
     loadingScreenPrefab: cc.Prefab = null;
     @property(cc.Prefab)
     mainMenuUIPrefab: cc.Prefab = null;
+    @property(cc.Prefab)
+    shopPrefab: cc.Prefab = null;
 
     @property(cc.Node)
     canvas: cc.Node = null;
@@ -22,6 +25,8 @@ export default class SceneManager extends cc.Component {
     mainMenuUIInstance: cc.Node = null;
     gameInstance: cc.Node = null;
     loadingScreenInstance: cc.Node = null;
+
+    shopNode: cc.Node = null;
 
 
     public static get Instance(): SceneManager {
@@ -54,6 +59,16 @@ export default class SceneManager extends cc.Component {
     static loadPrefab(prefab: cc.Prefab): cc.Node {
         SceneManager.Instance.mainMenuUIInstance.destroy();
         return cc.instantiate(prefab);
+    }
+
+    static loadShop(coinLabel: cc.Label, coinAnimLabel: cc.Label): void {
+        SceneManager.Instance.shopNode = cc.instantiate(SceneManager.Instance.shopPrefab);
+        SceneManager.Instance.canvas.addChild(SceneManager.Instance.shopNode);
+
+        const shopCtrl = SceneManager.Instance.shopNode.children[SceneManager.Instance.shopNode.childrenCount - 1].getComponent(ShopController);
+
+        shopCtrl.init(coinLabel, coinAnimLabel, () => { SceneManager.Instance.shopNode.destroy(); });
+        shopCtrl.openShop();
     }
 
 

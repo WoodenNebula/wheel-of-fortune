@@ -231,6 +231,9 @@
     "mainMenuUIPrefab": {
       "__uuid__": "93f66b82-dec2-4614-8a4c-e98c93983fc0"
     },
+    "shopPrefab": {
+      "__uuid__": "6db21091-b6af-414c-8282-63432cfc6924"
+    },
     "canvas": {
       "__id__": 6
     },

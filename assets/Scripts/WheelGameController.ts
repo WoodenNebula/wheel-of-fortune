@@ -5,6 +5,7 @@ import { BET_AMOUNTS, GameStates, WHEEL_SPECIAL_WINS, WinTypes } from "./GameCon
 
 import WheelSpiner from "./WheelSpinner";
 import { Coins } from "./Coins";
+import SceneManager from "./SceneManager";
 
 const { ccclass, property } = cc._decorator;
 
@@ -85,6 +86,7 @@ export default class WheelGameController extends cc.Component {
         }
         else if (!hasEnoughCoins) {
             AudioManager.playClip(AudioManager.Instance.errorAudioClip);
+            SceneManager.loadShop(this.coinLabel, this.coinAnimLabel);
             // display not enough coins feedback
         }
     }
