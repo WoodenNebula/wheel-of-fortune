@@ -49,32 +49,40 @@ export default class SceneManager extends cc.Component {
 
     }
 
-    private _launchGame(targetGamePrefab: cc.Prefab, loadingTime: number = DEFAULT_GAME_PROPERTIES.ENTER_LOADING_TIME): void {
+
+    // loads a given prefab and returns the instance for use
+    static loadPrefab(prefab: cc.Prefab): cc.Node {
+        SceneManager.Instance.mainMenuUIInstance.destroy();
+        return cc.instantiate(prefab);
+    }
+
+
+    private _launchGame(targetPrefab: cc.Prefab, loadingTime: number = DEFAULT_GAME_PROPERTIES.ENTER_LOADING_TIME): void {
         this.mainMenuUIInstance.destroy();
 
         this.onLoadingScreenLoaded(() => {
-            this.gameInstance = cc.instantiate(targetGamePrefab);
-            cc.log(`Started ${targetGamePrefab.name} Mode!`);
+            this.gameInstance = cc.instantiate(targetPrefab);
+            cc.log(`Started ${targetPrefab.name} Mode!`);
             this.canvas.addChild(this.gameInstance);
         }, loadingTime);
     }
 
 
-    launchSingleWheelGame(): void {
-        this._launchGame(this.singleWheelSpinPrefab, 2);
+    static launchSingleWheelGame(gamePrefab: cc.Prefab = SceneManager.Instance.singleWheelSpinPrefab): void {
+        SceneManager.Instance._launchGame(gamePrefab, 2);
     }
 
     launchDoubleWheelGame(): void {
         this._launchGame(this.doubleWheelSpinPrefab, 2.5);
     }
 
-    onGameExit(): void {
-        this.gameInstance.destroy();
+    static loadMainMenu(): void {
+        SceneManager.Instance.gameInstance?.destroy();
 
-        this.onLoadingScreenLoaded(() => {
+        SceneManager.instance.onLoadingScreenLoaded(() => {
             cc.log("ExitButton Handled");
-            this.mainMenuUIInstance = cc.instantiate(this.mainMenuUIPrefab);
-            this.canvas.addChild(this.mainMenuUIInstance);
+            SceneManager.Instance.mainMenuUIInstance = cc.instantiate(SceneManager.Instance.mainMenuUIPrefab);
+            SceneManager.Instance.canvas.addChild(SceneManager.Instance.mainMenuUIInstance);
         });
     }
 

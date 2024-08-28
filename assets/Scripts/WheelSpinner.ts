@@ -1,12 +1,20 @@
 import { SPIN_STATES } from "./GameConfig";
-import WheelBase from "./WheelBase";
 import WheelGameController from "./WheelGameController";
 
 const { ccclass, property } = cc._decorator;
 
 
 @ccclass
-export default class WheelSpiner extends WheelBase {
+export default class WheelSpiner extends cc.Component {
+    @property(cc.Node)
+    spinButtonNode: cc.Node = null
+
+    @property(cc.Node)
+    buttonUnpressedNode: cc.Node = null;
+
+    @property(cc.Node)
+    wheelNode: cc.Node = null;
+
     @property(cc.Node)
     wheelGameControllerNode: cc.Node = null;
 
@@ -23,26 +31,28 @@ export default class WheelSpiner extends WheelBase {
     accelerationFactor: number = 1;
     initialDecelerationFactor: number = 0.5;
     decelerationFactor: number = this.initialDecelerationFactor;
+    spinDuration: number = 5;
 
 
     switchState(to: SPIN_STATES): void {
         this.spinState = to;
-        cc.log("Switched Spin State = " + to);
+        cc.log("Curr spin state = " + SPIN_STATES[to]);
 
         switch (to) {
             case SPIN_STATES.NO_SPIN:
                 this.lerpRatio = 1;
                 this.spinButtonNode.active = true;
+                this.buttonUnpressedNode.active = true;
                 this.spinComplete = true;
                 break;
             case SPIN_STATES.CONSTANT_SPEED:
                 this.lerpRatio = 1;
-                this.spinButtonNode.active = true;
                 this.spinComplete = false;
                 break;
             case SPIN_STATES.ACCELERATING:
             case SPIN_STATES.DECELERATING:
                 this.spinButtonNode.active = false;
+                this.buttonUnpressedNode.active = false;
                 this.spinComplete = false;
                 this.lerpRatio = 0;
                 break;
@@ -51,21 +61,22 @@ export default class WheelSpiner extends WheelBase {
         }
     }
 
-    get currentSpinState(): SPIN_STATES {
-        return this.spinState;
-    }
 
-
-    startSpin(): void {
+    startSpin(spinDuration: number): void {
         this.switchState(SPIN_STATES.ACCELERATING);
+        this.spinDuration = spinDuration;
 
         this.spinButtonNode.active = false;
+        this.spinButtonNode.active = false;
+
         this.spinComplete = false;
     }
 
     stopSpin(): void {
+        cc.log("Stopping!");
         this.switchState(SPIN_STATES.DECELERATING);
         this.spinButtonNode.active = false;
+        this.buttonUnpressedNode.active = false;
     }
 
 
@@ -92,12 +103,16 @@ export default class WheelSpiner extends WheelBase {
             case SPIN_STATES.CONSTANT_SPEED:
                 // const speed 
                 this.wheelNode.angle = (this.wheelNode.angle + this.currentSpeed) % 360;
+                this.spinDuration -= dt;
+                if (this.spinDuration <= 0) {
+                    cc.log("Spun for " + this.spinDuration + "s");
+                    this.stopSpin();
+                }
                 break;
             case SPIN_STATES.ACCELERATING:
                 this.rotateLerped(0, this.topSpeed, this.accelerationFactor, dt);
 
                 if (this.currentSpeed >= this.topSpeed || this.lerpRatio >= 1) {
-                    cc.log("r = " + this.lerpRatio);
                     this.switchState(SPIN_STATES.CONSTANT_SPEED);
                 }
                 break;
@@ -106,7 +121,11 @@ export default class WheelSpiner extends WheelBase {
 
                 if (this.currentSpeed <= 0 || this.lerpRatio >= 1) {
                     this.switchState(SPIN_STATES.NO_SPIN);
-                    this.wheelGameController.onSpinComplete(Math.floor(this.wheelNode.angle % 360));
+
+                    this.spinButtonNode.active = true;
+                    this.buttonUnpressedNode.active = true;
+
+                    this.wheelGameController.handlePostSpin(Math.floor(this.wheelNode.angle % 360));
                 }
                 break;
         }

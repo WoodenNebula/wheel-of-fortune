@@ -1,14 +1,14 @@
 import AudioManager from "./AudioManager";
-import SceneManager from "./SceneManager";
-import ControllerBase from "./ControllerBase";
-
-import { GAMES } from "./GameConfig";
+import { Coins } from "./Coins";
+import ShopController from "./ShopController";
+import GameManager from "./GameManager";
+import { AVAILABLE_GAMES } from "./GameConfig";
 
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class MainMenuController extends ControllerBase {
+export default class MainMenuController extends cc.Component {
 
     @property(cc.Node)
     startButtonNode: cc.Node = null;
@@ -20,25 +20,41 @@ export default class MainMenuController extends ControllerBase {
     @property(cc.Node)
     coinResetButton: cc.Node = null;
 
+    @property(cc.Label)
+    coinLabel: cc.Label = null;
+    @property(cc.Label)
+    coinAnimLabel: cc.Label = null;
+
+    @property(cc.Prefab)
+    shopPrefab: cc.Prefab = null;
+
+    shopNode: cc.Node = null;
 
     audioToggle: cc.Toggle = null;
     bgMusicToggle: cc.Toggle = null;
 
 
+    onCoinResetButtonClicked(): void {
+        Coins.resetCoins(this.coinLabel, this.coinAnimLabel);
+    }
+
+    onShopButtonClicked(): void {
+        this.shopNode = cc.instantiate(this.shopPrefab);
+        this.node.parent.addChild(this.shopNode);
+
+        const shopCtrl = this.shopNode.children[this.shopNode.childrenCount - 1].getComponent(ShopController);
+
+        shopCtrl.init(this.coinLabel, this.coinAnimLabel, () => { this.shopNode.destroy(); });
+        shopCtrl.openShop();
+    }
+
     onSingleWheelButtonClicked(): void {
         AudioManager.playButtonClickAudio(true);
-        SceneManager.Instance.launchSingleWheelGame();
+        GameManager.loadGame(AVAILABLE_GAMES.SINGLE_WHEEL_SPIN, 2);
     }
 
     onDoubleWheelButtonClick(): void {
-        if (this.hasBetAmount(GAMES.DOUBLE_WHEEL_SPIN, 1)) {
-            AudioManager.playButtonClickAudio(true);
-            SceneManager.Instance.launchDoubleWheelGame();
-        }
-        else {
-            // Do some more stuff to show game cant be entered with current amount of coin
-            AudioManager.playClip(this.errorAudioClip);
-        }
+        AudioManager.playButtonClickAudio(true);
     }
 
 
@@ -104,6 +120,6 @@ export default class MainMenuController extends ControllerBase {
         else
             this.bgMusicToggle.check();
 
-        this.syncCoinCountDisplay();
+        Coins.syncCoinCountDisplay(this.coinLabel);
     }
 }

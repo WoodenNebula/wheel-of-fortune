@@ -1,28 +1,25 @@
 import AudioManager from "./AudioManager";
-import { COINS } from "./Coins"
-import ControllerBase from "./ControllerBase";
+import { Coins } from "./Coins";
 import { SHOP_COIN_PACKS, SHOP_PACKS, shopPackData } from "./GameConfig";
-import MainMenuController from "./MainMenuController";
 
 const { ccclass, property } = cc._decorator;
 
 
 @ccclass
-export default class ShopController extends ControllerBase {
-    @property(cc.Node)
-    mainMenuControllerNode: cc.Node = null;
+export default class ShopController extends cc.Component {
     @property(cc.Node)
     shopUINode: cc.Node = null;
     @property(cc.Prefab)
     coinPurchasePackPrefab: cc.Prefab = null;
 
-    @property(cc.AudioClip)
-    transactionSuccessAudio: cc.AudioClip = null;
-    @property(cc.AudioClip)
-    transactionFailAudio: cc.AudioClip = null;
-
+    @property(cc.Node)
     shopPopupNode: cc.Node = null;
-    mainMenuController: MainMenuController = null;
+
+    coinLabel: cc.Label = null;
+    coinAnimLabel: cc.Label = null;
+
+    onCloseCb: { (): void } = null;
+
     // @property(cc.SpriteFrame)
     // coinSprite: cc.Sprite = null
     // 
@@ -48,7 +45,14 @@ export default class ShopController extends ControllerBase {
     //     // })
     // }
 
-    onShopButtonClicked(): void {
+    init(coinLabel: cc.Label, coinAnimLabel: cc.Label, onClose: { (): void }): void {
+        cc.log("Initialized Shop!");
+        this.coinLabel = coinLabel;
+        this.coinAnimLabel = coinAnimLabel;
+        this.onCloseCb = onClose;
+    }
+
+    openShop(): void {
         cc.log("Opening Shop!");
         AudioManager.playButtonClickAudio(true);
 
@@ -63,15 +67,14 @@ export default class ShopController extends ControllerBase {
 
     }
 
-    onShopCloseButtonClicked(): void {
+    closeShop(): void {
         cc.log("Closing Shop");
         AudioManager.playButtonClickAudio(true);
 
         cc.tween(this.shopPopupNode)
             .to(0.3, { scaleX: 0, scaleY: 0 })
-            .call(() => { this.shopUINode.active = false; })
+            .call(() => { this.shopUINode.active = false; this.onCloseCb(); })
             .start();
-
     }
 
 
@@ -90,15 +93,15 @@ export default class ShopController extends ControllerBase {
         if (transactionSuccess) {
             cc.log("Transaction success!");
             // show success feedback
-            this.updateCoins(coinPack.amount)
+            Coins.updateCoins(coinPack.amount, this.coinLabel, this.coinAnimLabel);
 
-            AudioManager.playClip(this.transactionSuccessAudio);
+            AudioManager.playClip(AudioManager.Instance.successAudioClip);
         }
         else if (!transactionSuccess) {
             // show failed message/feedback
             cc.warn("Transaction failed!");
 
-            AudioManager.playClip(this.transactionFailAudio)
+            AudioManager.playClip(AudioManager.Instance.errorAudioClip);
             return;
         }
     }
@@ -112,10 +115,6 @@ export default class ShopController extends ControllerBase {
 
     protected onLoad(): void {
         this.shopUINode.active = false;
-        // children[0] is input blocker, 1 is 
-        this.shopPopupNode = this.shopUINode.children[1];
-
-        this.mainMenuController = this.mainMenuControllerNode.getComponent(MainMenuController);
         // this.coinPurchasePacks = [];
 
         // this.spriteMap = new Map();
@@ -125,5 +124,4 @@ export default class ShopController extends ControllerBase {
 
         // this._instantiateShop();
     }
-
 }

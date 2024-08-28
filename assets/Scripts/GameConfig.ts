@@ -3,6 +3,20 @@ export const DEFAULT_GAME_PROPERTIES = {
     EXIT_LOADING_TIME: 3
 }
 
+export const BET_AMOUNTS = [10, 100, 200, 300, 400, 500];
+
+
+export enum WinTypes {
+    RESPIN = "RESPIN",
+    JACKPOT = "JACKPOT",
+    NORMAL = "NORMAL"
+}
+
+export enum GameStates {
+    IDLE,
+    SPINNING,
+    SPIN_COMPLETE
+}
 
 export enum SPIN_STATES {
     NO_SPIN = 0,
@@ -16,6 +30,7 @@ export enum SHOP_COIN_PACKS {
     HUNDRED = 100,
     FIVE_HUNDRED = 500
 }
+
 export type shopPackData = { price: number, amount: number };
 
 export const SHOP_PACKS: { [key in keyof typeof SHOP_COIN_PACKS]: shopPackData } = {
@@ -53,31 +68,15 @@ export const COIN_PURCHASE_PROPERTIES: {
     ]
 
 
-export enum GAME_TYPES {
-    SINGLE_WHEEL_SPIN,
-    DOUBLE_WHEEL_SPIN
-}
+export type GameData = { name: string, index: number };
 
-export type gameData = { entryCost: number };
-export type gameProps = { [key in keyof typeof GAME_TYPES]: gameData };
-
-export const GAMES: gameProps = {
-    SINGLE_WHEEL_SPIN: { entryCost: 10 },
-    DOUBLE_WHEEL_SPIN: { entryCost: 20 }
-}
-
-
-export const WHEEL_BET_MULTIPLIERS = {
-    BASE: 1,
-    FIVE: 5,
-    TEN: 10,
-    JACKPOT: 200,
-    MAX: 5,
-    MIN: 1
+export const AVAILABLE_GAMES = {
+    SINGLE_WHEEL_SPIN: { name: "SINGLE_WHEEL_SPIN", index: 0 },
+    DOUBLE_WHEEL_SPIN: { name: "DOUBLE_WHEEL_SPIN", index: 1 },
 }
 
 
 export const WHEEL_SPECIAL_WINS = {
-    REFUND: "REFUND",
-    JACKPOT: "JACKPOT"
+    RESPIN: { name: "RESPIN" },
+    JACKPOT: { name: "JACKPOT", winAmount: 500 }
 }

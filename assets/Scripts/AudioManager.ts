@@ -17,6 +17,10 @@ export default class AudioManager extends cc.Component {
     @property(cc.AudioClip)
     buttonClickAudio: cc.AudioClip = null;
 
+    @property(cc.AudioClip)
+    successAudioClip: cc.AudioClip = null;
+    @property(cc.AudioClip)
+    errorAudioClip: cc.AudioClip = null;
 
     musicSource: cc.AudioSource = null;
     buttonAudioSource: cc.AudioSource = null;
@@ -61,7 +65,7 @@ export default class AudioManager extends cc.Component {
         }
     }
 
-    public static playButtonClickAudio(shouldPlay: boolean): void {
+    public static playButtonClickAudio(shouldPlay: boolean = true): void {
         if (shouldPlay) {
             cc.log("playing Button click!");
             this.playClip(AudioManager.Instance.buttonClickAudio);
