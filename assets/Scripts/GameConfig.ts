@@ -22,7 +22,8 @@ export enum SPIN_STATES {
     NO_SPIN = 0,
     ACCELERATING = 1,
     CONSTANT_SPEED = 2,
-    DECELERATING = 3
+    DECELERATING_UNHANDLED = 3,
+    DECELERATING = 4
 }
 
 export enum SHOP_COIN_PACKS {

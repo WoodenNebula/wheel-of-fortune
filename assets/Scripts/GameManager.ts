@@ -21,19 +21,10 @@ export default class GameManager extends cc.Component {
     activeGameController: WheelGameController = null;
 
 
-    static getRandomIndex(max: number): number {
-        let index = 0;
-        do {
-            index = Math.random() * 10;
-            while (Math.trunc(index) == 0) {
-                index = index * 10;
-            }
-
-            index = Math.trunc(index);
-        }
-        while (index >= max);
-
-        return index;
+    static getRandomIndex(min: number, max: number): number {
+        let range = max - min;
+        let rand = Math.random();
+        return (min + Math.round(rand * (range + 1)));
     }
 
 
@@ -65,6 +56,17 @@ export default class GameManager extends cc.Component {
     static getBetRewardList(): string[] {
         return GameManager.instance.activeGameController.finalRewardList;
     }
+
+    // specific
+    static setTargetIndex(index: number): void {
+        GameManager.instance.activeGameController.setTargetIndex(index);
+    }
+
+    // specific
+    static getTargetIndex(): number {
+        return GameManager.instance.activeUIController.getTargetIndex();
+    }
+
 
     static get instance() {
         return GameManager._instance;

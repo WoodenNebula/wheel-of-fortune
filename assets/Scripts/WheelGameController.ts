@@ -29,7 +29,11 @@ export default class WheelGameController extends cc.Component {
 
     gameState: GameStates = GameStates.IDLE;
 
-    baseRewardList: string[] = [];
+    baseRewardList: {
+        rangeStart: number,
+        rangeEnd: number,
+        data: string
+    }[] = [];
     multipliedRewardList: string[] = [];
 
     onGameStateSwitched: { (state: GameStates): void }[] = []
@@ -39,7 +43,10 @@ export default class WheelGameController extends cc.Component {
 
     spinResult: string = ""
 
-    rigged: boolean = true;
+    prevTargetIndex: number = 0;
+
+    @property(cc.Boolean)
+    rigged: boolean = false;
 
     private _betMultiplier: number = 1;
     private _betAmount: number = BET_AMOUNTS[0];
@@ -81,6 +88,22 @@ export default class WheelGameController extends cc.Component {
         if (!this.timedSpinning && this.gameState == GameStates.SPINNING) {
             AudioManager.playButtonClickAudio(true);
             this.wheelSpinner.stopSpin();
+
+            // if prevWin == RESPIN
+            // let index = GameManager.getTargetIndex();
+            // 
+            // if (index == this.prevTargetIndex) {
+            // 
+            // let randomIndex = GameManager.getRandomIndex(0, this.baseRewardList.length);
+            // while (randomIndex == this.prevTargetIndex) {
+            // randomIndex = GameManager.getRandomIndex(0, this.baseRewardList.length);
+            // }
+            // 
+            // index = randomIndex;
+            // }
+
+            // this.setTargetIndex(index);
+
             return;
         }
 
@@ -100,17 +123,33 @@ export default class WheelGameController extends cc.Component {
     }
 
 
+    setTargetIndex(index: number): void {
+        cc.log("Index received = " + index);
+
+        this.prevTargetIndex = index;
+
+        if (index == 0) {
+            this.wheelSpinner.stopTargetAngle = 0;
+            return;
+        }
+
+        const targetSegment = this.baseRewardList[Math.min(index, this.baseRewardList.length - 1)];
+        const targetSegmentMidAngle = ((targetSegment.rangeStart + targetSegment.rangeEnd) / 2) % 360
+        cc.log("Mid angle = " + targetSegmentMidAngle);
+
+        this.wheelSpinner.stopTargetAngle = targetSegmentMidAngle;
+    }
+
+
 
     private _recalculateRewardList(): void {
-        cc.log("recalculating rewards!");
         this.multipliedRewardList = [];
 
         for (let i = 0; i < this.baseRewardList.length; i++) {
-            let rewardAmount = parseInt(this.baseRewardList[i]);
-            cc.log("Base Reward in int = " + rewardAmount + " in str = " + this.baseRewardList[i]);
+            let rewardAmount = parseInt(this.baseRewardList[i].data);
 
             if (Number.isNaN(rewardAmount)) {
-                this.multipliedRewardList[i] = this.baseRewardList[i];
+                this.multipliedRewardList[i] = this.baseRewardList[i].data;
                 continue;
             }
 
@@ -121,7 +160,11 @@ export default class WheelGameController extends cc.Component {
 
 
     handlePostSpin(finalRotation: number): void {
-        this.spinResult = this._retrieveDataUnderPin(finalRotation);
+        const rewardIndex = this._getIndexOfRewardAt(finalRotation);
+        this._recalculateRewardList();
+        this.spinResult = this.multipliedRewardList[rewardIndex];
+        cc.log("Result = " + this.spinResult);
+
         let winType = this._retrieveWinType(this.spinResult);
 
         if (this.rigged) {
@@ -169,7 +212,8 @@ export default class WheelGameController extends cc.Component {
         this.wheelSpinner.timedSpinning = this.timedSpinning;
 
         this.switchGameState(GameStates.SPINNING);
-        this.wheelSpinner.startSpin(3);
+
+        this.wheelSpinner.startSpin();
         // this._testRetrival();
         cc.log("LOGGING LIST");
         cc.log(this.multipliedRewardList);
@@ -192,7 +236,7 @@ export default class WheelGameController extends cc.Component {
 
     private _testRetrival(): void {
         for (let i = 0; i < 360; i++) {
-            cc.log(`(i, r) = (${i}, ${this._retrieveDataUnderPin(i)})`);
+            cc.log(`${i}Degree = ${this.baseRewardList[this._getIndexOfRewardAt(i)].data}`);
         }
     }
 
@@ -207,29 +251,17 @@ export default class WheelGameController extends cc.Component {
     }
 
 
-    private _retrieveDataUnderPin(angle: number): string {
-        // for first awkward segment
-        this._recalculateRewardList();
-        let rangeStart: number = 360 - Math.floor(this.segmentArcLength / 2);
-        let rangeEnd: number = this.segmentArcLength / 2;
-
-        cc.log(`[${rangeStart}, ${rangeEnd})`);
-
-        // for 1st segment
-        if (angle >= rangeStart || angle < rangeEnd) {
-            return this.multipliedRewardList[0];
+    private _getIndexOfRewardAt(angle: number): number {
+        if (this.baseRewardList[0].rangeStart <= angle || angle < this.baseRewardList[0].rangeEnd) {
+            return 0;
         }
 
-        //  for segment >= 0
-        for (let i = 1; i <= this.multipliedRewardList.length; i++) {
-            rangeStart = rangeEnd;
-            rangeEnd += this.segmentArcLength;
+        for (let i = 1; i < this.baseRewardList.length; i++) {
 
-            if (angle >= rangeStart && angle < rangeEnd) {
-                return this.multipliedRewardList[i];
+            if (this.baseRewardList[i].rangeStart <= angle && angle < this.baseRewardList[i].rangeEnd) {
+                return i;
             }
         }
-        return null;
     }
 
 
@@ -237,14 +269,40 @@ export default class WheelGameController extends cc.Component {
         GameManager.instance.activeGameController = this;
     }
 
+
+    initDataList() {
+        cc.log("Initializing data object list");
+        const data = GameManager.fetchSegmentData();
+        this.segmentArcLength = 360 / data.length;
+
+        const dataObjConst = (start: number, end: number, sData: string) => {
+            return {
+                rangeStart: start,
+                rangeEnd: end,
+                data: sData
+            }
+        }
+
+        let rangeStart: number = 360 - Math.floor(this.segmentArcLength / 2);
+        let rangeEnd: number = this.segmentArcLength / 2;
+
+        for (let i = 0; i < data.length; i++) {
+            const dataObj = dataObjConst(rangeStart, rangeEnd, data[i]);
+            this.baseRewardList.push(dataObj);
+
+            rangeStart = rangeEnd;
+            rangeEnd += this.segmentArcLength;
+        }
+    }
+
+
     // Display Result script
     protected start(): void {
         this._betIndex = 0;
-
-        this.baseRewardList = GameManager.fetchSegmentData();
+        this.initDataList();
+        cc.log(this.baseRewardList);
         this._recalculateRewardList();
 
-        this.segmentArcLength = 360 / this.baseRewardList.length;
         this.wheelSpinner = this.wheelSpinnerNode.getComponent(WheelSpiner);
     }
 }

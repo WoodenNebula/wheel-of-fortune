@@ -43,6 +43,10 @@ export default class GameUIController extends cc.Component {
     resultDisplayLabel: cc.Label = null;
 
 
+    @property(cc.EditBox)
+    indexEditBox: cc.EditBox = null;
+
+
     @property(cc.Node)
     segmentParentNode: cc.Node = null;
 
@@ -50,6 +54,7 @@ export default class GameUIController extends cc.Component {
     segmentArcLength: number = 0;
 
     onSpinButtonClicked(): void {
+        this.onIndexChoosen();
         GameManager.startGame();
     }
 
@@ -72,8 +77,6 @@ export default class GameUIController extends cc.Component {
         GameManager.decreaseBetAmount();
         this.syncBetData();
     }
-
-
 
 
     // data is received only on spin_complete
@@ -101,6 +104,14 @@ export default class GameUIController extends cc.Component {
     }
 
 
+    onIndexChoosen(): void {
+        GameManager.setTargetIndex(this.getTargetIndex());
+    }
+
+    getTargetIndex(): number {
+        return parseInt(this.indexEditBox.string);
+    }
+
     displayResult(resultantData: string) {
         const resultStringHeader = "YOU WON ";
         const resultStringFooter = " COINS";
@@ -126,7 +137,7 @@ export default class GameUIController extends cc.Component {
             displayString = resultStringHeader + "A FREE RESPIN!";
         }
         // add "coins" for any normal win
-        else if (resultantData == WinTypes.NORMAL) {
+        else {
             displayString += resultStringFooter;
         }
 
@@ -197,7 +208,7 @@ export default class GameUIController extends cc.Component {
             r = Math.floor(r)
 
             rewardList[i].string = (r * BET_AMOUNTS[0]).toString();
-            rewardList[i].fontSize = 40;
+            // rewardList[i].fontSize = 40;
         }
     }
 
@@ -205,12 +216,12 @@ export default class GameUIController extends cc.Component {
     private _assignSpecialWinSegment(segmentLabel: cc.Label[], specialWinValue: WinTypes) {
         let i: number;
         do {
-            i = GameManager.getRandomIndex(segmentLabel.length);
+            i = GameManager.getRandomIndex(1, segmentLabel.length);
         } while (Number.isNaN(parseInt(segmentLabel[i].string)));
 
         let targetLabel = segmentLabel[i];
         targetLabel.string = specialWinValue;
-        targetLabel.fontSize = 20;
+        // targetLabel.fontSize = 20;
         // offset is taken from 3 since third segment is horizontal, subtract one as indexing starts from 0
         targetLabel.node.angle = this.segmentArcLength * (3 - i - 1);
     }
