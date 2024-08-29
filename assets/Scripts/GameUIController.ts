@@ -16,7 +16,7 @@ export default class GameUIController extends cc.Component {
     exitButtonNode: cc.Node = null;
 
     @property(cc.Node)
-    buttonPressedNode: cc.Node = null;
+    buttonUnpressedNode: cc.Node = null;
 
     @property(cc.Node)
     betAmountParentNode: cc.Node = null;
@@ -107,7 +107,7 @@ export default class GameUIController extends cc.Component {
         let displayString = resultStringHeader + resultantData;
 
         // handle jackpot case
-        if (resultantData == WHEEL_SPECIAL_WINS.JACKPOT.name) {
+        if (resultantData == WinTypes.JACKPOT) {
             this.jackpotBannerNode.scaleX = 0;
             this.jackpotBannerNode.scaleY = 0;
 
@@ -119,9 +119,14 @@ export default class GameUIController extends cc.Component {
 
             return;
         }
+        else if (resultantData == WinTypes.RESPIN) {
+            this.spinButtonNode.getComponent(cc.Button).interactable = false;
+            this.buttonUnpressedNode.active = false;
 
+            displayString = resultStringHeader + "A FREE RESPIN!";
+        }
         // add "coins" for any normal win
-        if (resultantData != WHEEL_SPECIAL_WINS.RESPIN.name) {
+        else if (resultantData == WinTypes.NORMAL) {
             displayString += resultStringFooter;
         }
 
@@ -229,7 +234,7 @@ export default class GameUIController extends cc.Component {
 
     protected start(): void {
         this.spinButtonNode.active = true;
-        this.buttonPressedNode.active = true;
+        this.buttonUnpressedNode.active = true;
         this.betAmountDecreaseButtonNode.active = false;
 
         this.initLabels();

@@ -22,9 +22,10 @@ export default class WheelSpiner extends cc.Component {
 
     spinState: SPIN_STATES = SPIN_STATES.NO_SPIN;
 
-    spinComplete: boolean = false;
 
     currentSpeed: number = 0;
+
+    @property(cc.Integer)
     topSpeed: number = 10;
     lerpRatio: number = 0;
 
@@ -32,6 +33,8 @@ export default class WheelSpiner extends cc.Component {
     initialDecelerationFactor: number = 0.5;
     decelerationFactor: number = this.initialDecelerationFactor;
     spinDuration: number = 5;
+
+    timedSpinning: boolean = false;
 
 
     switchState(to: SPIN_STATES): void {
@@ -41,19 +44,18 @@ export default class WheelSpiner extends cc.Component {
         switch (to) {
             case SPIN_STATES.NO_SPIN:
                 this.lerpRatio = 1;
-                this.spinButtonNode.active = true;
+                this.spinButtonNode.getComponent(cc.Button).interactable = true;
                 this.buttonUnpressedNode.active = true;
-                this.spinComplete = true;
                 break;
             case SPIN_STATES.CONSTANT_SPEED:
+                this.spinButtonNode.getComponent(cc.Button).interactable = true;
+                this.buttonUnpressedNode.active = true;
                 this.lerpRatio = 1;
-                this.spinComplete = false;
                 break;
             case SPIN_STATES.ACCELERATING:
             case SPIN_STATES.DECELERATING:
-                this.spinButtonNode.active = false;
                 this.buttonUnpressedNode.active = false;
-                this.spinComplete = false;
+                this.spinButtonNode.getComponent(cc.Button).interactable = false;
                 this.lerpRatio = 0;
                 break;
             default:
@@ -65,18 +67,12 @@ export default class WheelSpiner extends cc.Component {
     startSpin(spinDuration: number): void {
         this.switchState(SPIN_STATES.ACCELERATING);
         this.spinDuration = spinDuration;
-
-        this.spinButtonNode.active = false;
-        this.spinButtonNode.active = false;
-
-        this.spinComplete = false;
     }
 
     stopSpin(): void {
         cc.log("Stopping!");
-        this.switchState(SPIN_STATES.DECELERATING);
-        this.spinButtonNode.active = false;
         this.buttonUnpressedNode.active = false;
+        this.switchState(SPIN_STATES.DECELERATING);
     }
 
 
@@ -103,10 +99,12 @@ export default class WheelSpiner extends cc.Component {
             case SPIN_STATES.CONSTANT_SPEED:
                 // const speed 
                 this.wheelNode.angle = (this.wheelNode.angle + this.currentSpeed) % 360;
-                this.spinDuration -= dt;
-                if (this.spinDuration <= 0) {
-                    cc.log("Spun for " + this.spinDuration + "s");
-                    this.stopSpin();
+                if (this.timedSpinning) {
+                    this.spinDuration -= dt;
+                    if (this.spinDuration <= 0) {
+                        cc.log("Spun for " + this.spinDuration + "s");
+                        this.stopSpin();
+                    }
                 }
                 break;
             case SPIN_STATES.ACCELERATING:

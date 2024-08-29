@@ -16,6 +16,8 @@ export default class WheelGameController extends cc.Component {
     @property(cc.Node)
     wheelSpinnerNode: cc.Node = null;
 
+    @property(cc.Boolean)
+    timedSpinning: boolean = false;
 
     /// TODO: move to UI
     @property(cc.Label)
@@ -25,7 +27,7 @@ export default class WheelGameController extends cc.Component {
 
     wheelSpinner: WheelSpiner = null;
 
-    gameStates: GameStates = GameStates.IDLE;
+    gameState: GameStates = GameStates.IDLE;
 
     baseRewardList: string[] = [];
     multipliedRewardList: string[] = [];
@@ -36,6 +38,8 @@ export default class WheelGameController extends cc.Component {
     segmentArcLength: number = 0;
 
     spinResult: string = ""
+
+    rigged: boolean = true;
 
     private _betMultiplier: number = 1;
     private _betAmount: number = BET_AMOUNTS[0];
@@ -73,8 +77,12 @@ export default class WheelGameController extends cc.Component {
 
 
     startGame(): void {
-        if (this.gameStates != GameStates.IDLE)
+        // handle stopping on button click
+        if (!this.timedSpinning && this.gameState == GameStates.SPINNING) {
+            AudioManager.playButtonClickAudio(true);
+            this.wheelSpinner.stopSpin();
             return;
+        }
 
         const hasEnoughCoins = Coins.hasBetAmount(this.betAmount);
 
@@ -114,13 +122,20 @@ export default class WheelGameController extends cc.Component {
 
     handlePostSpin(finalRotation: number): void {
         this.spinResult = this._retrieveDataUnderPin(finalRotation);
-        const winType = this._retrieveWinType(this.spinResult);
+        let winType = this._retrieveWinType(this.spinResult);
 
+        if (this.rigged) {
+            this.rigged = false;
+            winType = WinTypes.RESPIN;
+            this.spinResult = winType;
+            // debugger
+        }
         switch (winType) {
             case WinTypes.RESPIN:
                 this.switchGameState(GameStates.SPIN_COMPLETE);
-                this.startSpin();
-                this.switchGameState(GameStates.IDLE);
+
+                const cb = this.startSpin;
+                this.scheduleOnce(cb.bind(this), 1.5);
 
                 break;
             case WinTypes.JACKPOT:
@@ -144,13 +159,15 @@ export default class WheelGameController extends cc.Component {
 
 
     switchGameState(to: GameStates): void {
-        this.gameStates = to;
+        this.gameState = to;
         cc.log(this.spinResult);
         GameManager.onGameStateChanged(to, this.spinResult);
     }
 
 
     startSpin(): void {
+        this.wheelSpinner.timedSpinning = this.timedSpinning;
+
         this.switchGameState(GameStates.SPINNING);
         this.wheelSpinner.startSpin(3);
         // this._testRetrival();
