@@ -24,7 +24,7 @@ export default class GameManager extends cc.Component {
     static getRandomIndex(min: number, max: number): number {
         let range = max - min;
         let rand = Math.random();
-        return (min + Math.round(rand * (range + 1)));
+        return (min + Math.floor(rand * range));
     }
 
 
