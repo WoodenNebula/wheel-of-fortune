@@ -50,7 +50,7 @@ export default class GameUIController extends cc.Component {
     @property(cc.Node)
     segmentParentNode: cc.Node = null;
 
-    rewardLabels: cc.Label[] = null;
+    rewardLabels: cc.Label[] = [];
     segmentArcLength: number = 0;
 
     onSpinButtonClicked(): void {
@@ -214,7 +214,7 @@ export default class GameUIController extends cc.Component {
 
 
     private _assignSpecialWinSegment(segmentLabel: cc.Label[], specialWinValue: WinTypes) {
-        let i: number;
+        let i: number = 0;
         do {
             i = GameManager.getRandomIndex(1, segmentLabel.length);
         } while (Number.isNaN(parseInt(segmentLabel[i].string)));
@@ -239,6 +239,7 @@ export default class GameUIController extends cc.Component {
         this.segmentArcLength = 360 / this.segmentParentNode.childrenCount;
 
         this._randomizeRewardList(this.rewardLabels, this.rewardLabels.length);
+        cc.log(this.rewardLabels);
         this._assignSpecialWinSegment(this.rewardLabels, WinTypes.JACKPOT);
         this._assignSpecialWinSegment(this.rewardLabels, WinTypes.RESPIN);
     }
@@ -250,7 +251,5 @@ export default class GameUIController extends cc.Component {
 
         this.initLabels();
 
-        cc.log("FROM UI");
-        cc.log(this.rewardLabels);
     }
 }

@@ -163,7 +163,7 @@ export default class WheelGameController extends cc.Component {
         const rewardIndex = this._getIndexOfRewardAt(finalRotation);
         this._recalculateRewardList();
         this.spinResult = this.multipliedRewardList[rewardIndex];
-        cc.log("Result = " + this.spinResult);
+        cc.log("Result = " + this.spinResult + ", " + this.prevTargetIndex);
 
         let winType = this._retrieveWinType(this.spinResult);
 
@@ -209,7 +209,7 @@ export default class WheelGameController extends cc.Component {
 
 
     startSpin(): void {
-        this.wheelSpinner.timedSpinning = this.timedSpinning;
+        this.wheelSpinner._timedSpinning = this.timedSpinning;
 
         this.switchGameState(GameStates.SPINNING);
 
@@ -304,5 +304,6 @@ export default class WheelGameController extends cc.Component {
         this._recalculateRewardList();
 
         this.wheelSpinner = this.wheelSpinnerNode.getComponent(WheelSpiner);
+        this.wheelSpinner.segmentLength = this.segmentArcLength;
     }
 }

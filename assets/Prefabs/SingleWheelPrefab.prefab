@@ -2306,8 +2306,8 @@
     "wheelGameControllerNode": {
       "__id__": 57
     },
-    "stallRotationNumber": 5,
-    "topSpeed": 15,
+    "topSpeed": 10,
+    "bottomSpeed": 2,
     "_id": ""
   },
   {
