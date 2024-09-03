@@ -203,7 +203,6 @@ export default class WheelGameController extends cc.Component {
 
     switchGameState(to: GameStates): void {
         this.gameState = to;
-        cc.log(this.spinResult);
         GameManager.onGameStateChanged(to, this.spinResult);
     }
 

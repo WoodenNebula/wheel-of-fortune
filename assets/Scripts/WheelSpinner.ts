@@ -32,29 +32,35 @@ export default class WheelSpiner extends cc.Component {
     segmentLength: number = 0;
     segmentRandomOffset: number = 0;
 
-    offsetThreshold: number = 0;
+    fps: number = 0;
 
 
-    _stallRotations: number = 0;
+    _stallRotations: number = 5;
 
     @property(cc.Integer)
     topSpeed: number = 10;
     @property(cc.Integer)
     bottomSpeed: number = 2;
 
+    MAX_ANGLE: number = 0;
+    FINAL_ANGLE: number = 0;
+
     lerpRatio: number = 0;
 
     accelerationFactor: number = 1;
-    initialDecelerationFactor: number = 0.5;
-    decelerationFactor: number = this.initialDecelerationFactor;
     spinDuration: number = 5;
 
-    curatedDecelerationDuration: number = 0;
+    decelerateDuration: number = 0;
 
     _timedSpinning: boolean = false;
     _isOffsetSet: boolean = false;
 
     currDecelarationTime: number = 0;
+
+
+    get offsetFromFinalAngle(): number {
+        return (this.FINAL_ANGLE - this.wheelAngle);
+    }
 
     switchState(to: SPIN_STATES): void {
         this.spinState = to;
@@ -73,21 +79,32 @@ export default class WheelSpiner extends cc.Component {
                 this.lerpRatio = 1;
                 break;
             case SPIN_STATES.DECELERATING:
-                cc.sys.localStorage.setItem("angle", this.wheelAngle);
-                this.lerpRatio = 0;
-                let distanceTravelled = 360 * DEFAULT_GAME_PROPERTIES.DECELERATION_DURATION + 5;
-                cc.log("CURRENT = " + this.wheelAngle + " Target = " + this.stopTargetAngle);
-                let offset = distanceTravelled + this.angleOffset;
-                cc.log("offset to cover: " + offset);
-                this.curatedDecelerationDuration = (offset - 5) / 360;
-                cc.log("Current duration = " + this.curatedDecelerationDuration);
+                this.spinButtonNode.getComponent(cc.Button).interactable = false;
 
+                this.lerpRatio = 0;
+
+                this.currentSpeed = this.topSpeed;
+                this.currDecelarationTime = 0;
+
+                this.decelerateDuration = DEFAULT_GAME_PROPERTIES.DECELERATION_DURATION;
+
+
+                this.MAX_ANGLE = this.wheelAngle + (this.topSpeed * this.decelerateDuration * this.fps + this.stopTargetAngle);
+
+                let stallRotation: number = this.getAppropriateStallRotation();
+                this.FINAL_ANGLE = stallRotation * 360 + this.stopTargetAngle;
+
+                cc.log("final angle should be = " + this.FINAL_ANGLE);
+                cc.log("Decelerating from " + this.wheelAngle);
+
+                break;
             case SPIN_STATES.ACCELERATING:
                 this.buttonUnpressedNode.active = false;
                 this.spinButtonNode.getComponent(cc.Button).interactable = false;
                 this.lerpRatio = 0;
                 break;
             case SPIN_STATES.SPIN_COMPLETE:
+                cc.sys.localStorage.setItem("angleDelta", this.wheelAngle - cc.sys.localStorage.getItem("angle"));
                 this.currentSpeed = 0;
                 this.currDecelarationTime = 0;
                 break;
@@ -96,6 +113,16 @@ export default class WheelSpiner extends cc.Component {
         }
     }
 
+
+    getAppropriateStallRotation(): number {
+        let finalRotationNumber = 5;
+        let estimatedDistance = this.getDistanceEstimate(this.topSpeed, 0);
+        finalRotationNumber = Math.round(estimatedDistance / (2 * 360));
+
+        cc.log(`[${estimatedDistance}->${finalRotationNumber}`);
+
+        return finalRotationNumber;
+    }
 
     startSpin(spinDuration: number = 5): void {
         this.switchState(SPIN_STATES.ACCELERATING);
@@ -113,7 +140,8 @@ export default class WheelSpiner extends cc.Component {
     }
 
     get angleOffset(): number {
-        return (360 + this.stopTargetAngle - + this.wheelAngle) % 360;
+        let offsetToZero = (360 - Math.round(this.wheelAngle) % 360);
+        return (offsetToZero + this.stopTargetAngle);
     }
 
     set stopTargetAngle(targetRotation: number) {
@@ -145,10 +173,10 @@ export default class WheelSpiner extends cc.Component {
         this.lerpRatio = Math.min(this.lerpRatio, 1);
         this.currentSpeed = speed;
 
-        this.wheelAngle += speed;;
+        this.wheelAngle += speed;
     }
 
-    // deceleration by tween
+    // // deceleration by tween
     // handleDeceleration(dt: number): void {
     //     const cb = () => {
     //         this.currentSpeed = 0;
@@ -167,42 +195,53 @@ export default class WheelSpiner extends cc.Component {
 
     //     cc.tween(this.wheelNode)
     //         .by(time, { angle: stallRotations }, { easing: "linear" })
-    //         .by(timeB, { angle: offset }, { easing: 'expoOut' })
+    //         .by(timeB, { angle: offset }, { easing: 'cubicOut' })
     //         .call(cb.bind(this))
     //         .start();
     // }
 
+    getDistanceEstimate(initialSpeed: number, finalSpeed: number): number {
+        let totalDistance = 0;
 
-    getEasedY(timeRatio: number, startingSpeed: number, finalSpeed: number): number {
-        let delta = finalSpeed - startingSpeed;
-        let y = delta * (Math.pow(timeRatio, 3) + 1) + startingSpeed;
-        return y;
+        for (let t = 0; t <= this.decelerateDuration; t += 1 / this.fps) {
+            let timeRatio = t / this.decelerateDuration;
+
+            let deltaDistance = this.getEasedY(timeRatio, initialSpeed, finalSpeed);
+            totalDistance += deltaDistance;
+        }
+        return totalDistance;
     }
 
 
+    getEasedY(timeRatio: number, startingSpeed: number = this.topSpeed, finalSpeed: number = 0): number {
+        let delta = finalSpeed - startingSpeed;
+        let x = timeRatio;
+        // let y = delta * (Math.pow(x, 3)) + startingSpeed;
+        let y = (delta * Math.pow(x, 5) + startingSpeed) / (Math.pow(5, Math.pow(x, 3)));
+        return y;
+    }
 
     handleDeceleration(dt: number): void {
-        let timeRatio = this.currDecelarationTime / this.curatedDecelerationDuration - 1;
-        cc.log(timeRatio);
+        let offsetRatio = Math.min(this.wheelAngle / this.FINAL_ANGLE, 1);
 
-        if (this.currDecelarationTime <= this.curatedDecelerationDuration) {
-            let speed = this.getEasedY(timeRatio, this.topSpeed, 0);
+        if (!this.isAngleWithinTargetRange()) {
+            let speed = this.getEasedY(offsetRatio, this.topSpeed, 0);
+            this.currentSpeed = speed;
 
-            this.wheelAngle = this.wheelAngle + speed;
+            this.wheelAngle += speed;
 
             this.currDecelarationTime += dt;
             return;
         }
-        else {
-            this.switchState(SPIN_STATES.SPIN_COMPLETE);
-        }
+
+        cc.log("Deceleration took " + this.currDecelarationTime + " Max time = " + this.decelerateDuration);
+        this.switchState(SPIN_STATES.SPIN_COMPLETE);
     }
 
 
+
     isAngleWithinTargetRange(): boolean {
-        const lowerBound = this.stopTargetAngle - this.offsetThreshold;
-        const upperBound = this.stopTargetAngle + this.offsetThreshold;
-        return (lowerBound <= this.wheelAngle) && (this.wheelAngle < upperBound);
+        return (Math.ceil(this.wheelAngle + 1) >= Math.floor(this.FINAL_ANGLE));
     }
 
     protected onLoad(): void {
@@ -217,6 +256,7 @@ export default class WheelSpiner extends cc.Component {
 
 
     protected update(dt: number): void {
+        this.fps = 1 / dt;
         switch (this.spinState) {
             case SPIN_STATES.CONSTANT_SPEED:
                 // const speed 
@@ -242,14 +282,11 @@ export default class WheelSpiner extends cc.Component {
 
             case SPIN_STATES.SPIN_COMPLETE:
                 if (this.currentSpeed <= 0) {
-
-                    cc.log("SPIN COMPLETED");
                     this.switchState(SPIN_STATES.IDLE);
                     this.spinButtonNode.active = true;
                     this.buttonUnpressedNode.active = true;
-
+                    cc.log("Final angle = " + this.wheelAngle);
                     const finalAngle = Math.floor(this.wheelNode.angle % 360);
-                    cc.log("Final angle = " + finalAngle);
                     this.wheelGameController.handlePostSpin(finalAngle);
                 }
                 break;
